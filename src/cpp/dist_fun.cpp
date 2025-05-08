@@ -2,9 +2,13 @@
 #include <cmath>
 #include "dist_fun.h"
 
+static dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept;
+static dist_float_t l1_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept;
+static dist_float_t l2_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept;
+
 const char* DistFun::_names[DistFun::_num_fun] = { nullptr, "cos", "l1", "l2" };
 DistFun::dist_func_t DistFun::_funcs[DistFun::_num_fun] = {
-    nullptr, &DistFun::cos_dist, &DistFun::l1_dist, &DistFun::l2_dist
+    nullptr, &cos_dist, &l1_dist, &l2_dist
 };
 
 std::size_t DistFun::get_index(const char* name) noexcept
@@ -31,7 +35,7 @@ DistFun::dist_func_t DistFun::get_func(std::size_t idx) noexcept
     return (idx < _num_fun) ? _funcs[idx] : nullptr;
 }
 
-dist_float_t DistFun::cos_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept
+dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept
 {
     dist_float_t dot = 0.0f, norm_a = 0.0f, norm_b = 0.0f;
     for (std::size_t i = 0; i < len; ++i) {
@@ -43,7 +47,7 @@ dist_float_t DistFun::cos_dist(dist_float_t* a, dist_float_t* b, std::size_t len
     return 1.0f - (dot / (std::sqrt(norm_a) * std::sqrt(norm_b)));
 }
 
-dist_float_t DistFun::l1_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept
+dist_float_t l1_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept
 {
     dist_float_t sum = 0.0f;
     for (std::size_t i = 0; i < len; ++i)
@@ -51,7 +55,7 @@ dist_float_t DistFun::l1_dist(dist_float_t* a, dist_float_t* b, std::size_t len)
     return sum;
 }
 
-dist_float_t DistFun::l2_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept
+dist_float_t l2_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept
 {
     dist_float_t sum = 0.0f;
     for (std::size_t i = 0; i < len; ++i) {

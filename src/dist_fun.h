@@ -16,8 +16,4 @@ private:
     static constexpr std::size_t _num_fun = 4;
     static const char* _names[_num_fun];
     static dist_func_t _funcs[_num_fun];
-
-    static dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept;
-    static dist_float_t l1_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept;
-    static dist_float_t l2_dist(dist_float_t* a, dist_float_t* b, std::size_t len) noexcept;
 };
