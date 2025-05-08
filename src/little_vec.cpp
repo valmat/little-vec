@@ -8,6 +8,7 @@
  */
 
 #include <rocksserver/api.h>
+#include "VecDbOpts.h"
 #include "RequestPing.h"
 
 
@@ -30,8 +31,12 @@ using namespace RocksServer;
  * @param db         wrapped object of RocksDB
  * @param cfg        Reference to configuration settings
  */
-PLUGIN(Extension extension, RocksDBWrapper& db)
+
+PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& cfg)
 {
+
+    VecDbOpts opts(cfg);
+
     extension
         .bind("/ping",       new RequestPing())
         // .bind("/wstats",     new RequestWstats(db))
