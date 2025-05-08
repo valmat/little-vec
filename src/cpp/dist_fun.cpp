@@ -2,9 +2,9 @@
 #include <cmath>
 #include "dist_fun.h"
 
-static dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept;
-static dist_float_t l1_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept;
-static dist_float_t l2_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept;
+static dist_float_t cos_dist(const dist_float_t* a, const dist_float_t* b, size_t len) noexcept;
+static dist_float_t l1_dist(const dist_float_t* a, const dist_float_t* b, size_t len) noexcept;
+static dist_float_t l2_dist(const dist_float_t* a, const dist_float_t* b, size_t len) noexcept;
 
 const char* DistFun::_names[DistFun::_num_fun] = {
     nullptr,
@@ -45,7 +45,7 @@ DistFun::dist_func_t DistFun::get_func(size_t idx) noexcept
     return (idx < _num_fun) ? _funcs[idx] : nullptr;
 }
 
-dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
+dist_float_t cos_dist(const dist_float_t* a, const dist_float_t* b, size_t len) noexcept
 {
     dist_float_t dot = 0.0f, norm_a = 0.0f, norm_b = 0.0f;
     for (size_t i = 0; i < len; ++i) {
@@ -54,18 +54,19 @@ dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
         norm_b += b[i] * b[i];
     }
 
-    auto min_norm = std::min(norm_a, norm_b);
-    auto exp = min_norm < std::numeric_limits<dist_float_t>::min()
-             ? std::numeric_limits<dist_float_t>::min_exponent - 1
-             : std::ilogb(min_norm);
-    auto ulp = std::ldexp(std::numeric_limits<dist_float_t>::epsilon(), exp);
-    if (norm_a < ulp || norm_b < ulp) {
+    constexpr dist_float_t eps = std::numeric_limits<dist_float_t>::epsilon() * 100;
+
+    if (norm_a <= eps && norm_b <= eps) {
         return 0.0f;
     }
+    if (norm_a <= eps || norm_b <= eps) {
+        return 1.0f;
+    }
+
     return 1.0f - (dot / (std::sqrt(norm_a) * std::sqrt(norm_b)));
 }
 
-dist_float_t l1_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
+dist_float_t l1_dist(const dist_float_t* a, const dist_float_t* b, size_t len) noexcept
 {
     dist_float_t sum = 0.0f;
     for (size_t i = 0; i < len; ++i) {
@@ -74,7 +75,7 @@ dist_float_t l1_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
     return sum;
 }
 
-dist_float_t l2_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
+dist_float_t l2_dist(const dist_float_t* a, const dist_float_t* b, size_t len) noexcept
 {
     dist_float_t sum = 0.0f;
     for (size_t i = 0; i < len; ++i) {

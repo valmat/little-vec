@@ -5,7 +5,7 @@ using dist_float_t = float;
 
 struct DistFun final
 {
-    using dist_func_t = dist_float_t(*)(dist_float_t*, dist_float_t*, std::size_t) noexcept;
+    using dist_func_t = dist_float_t(*)(const dist_float_t*, const dist_float_t*, std::size_t) noexcept;
 
     static std::size_t get_index(const char* name) noexcept;
     static const char* get_name(std::size_t idx) noexcept;
