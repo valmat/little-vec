@@ -7,8 +7,12 @@
  *  @github https://github.com/valmat/rocksserver
  */
 
+#include <iostream>
+#include <memory>
 #include <rocksserver/api.h>
 #include "VecDbOpts.h"
+#include "VecDb.h"
+
 #include "RequestPing.h"
 
 
@@ -36,6 +40,7 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
 {
 
     VecDbOpts opts(cfg);
+    auto vec_db = std::make_shared<VecDb>(opts);
 
     extension
         .bind("/ping",       new RequestPing())
