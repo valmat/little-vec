@@ -1,7 +1,6 @@
+#pragma once
 #include <iostream>
 #include <rocksserver/api.h>
-
-#pragma once
  
 
 class VecDbOpts final
