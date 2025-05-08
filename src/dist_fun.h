@@ -1,16 +1,18 @@
 #pragma once
 #include <iostream>
 #include <cstring>
-#include <math.h>
+#include <cmath>
+
+using dist_float_t = float;
 
 struct DistFun final
 {
-    using dist_func_t = float(*)(float*, float*, size_t) noexcept;
+    using dist_func_t = dist_float_t(*)(dist_float_t*, dist_float_t*, size_t) noexcept;
 
 public:
-    static int get_index(const char* name) noexcept
+    static size_t get_index(const char* name) noexcept
     {
-        for (int i = 1; _names[i] != nullptr; ++i) {
+        for (size_t i = 1; i < _num_fun; ++i) {
             if (std::strcmp(_names[i], name) == 0)
                 return i;
         }
@@ -19,38 +21,31 @@ public:
 
     static const char* get_name(size_t idx) noexcept
     {
-        return (idx < size()) ? _names[idx] : nullptr;
+        return (idx < _num_fun) ? _names[idx] : nullptr;
     }
 
     // Получение указателя на функцию по имени
     static dist_func_t get_func(const char* name) noexcept
     {
-        int idx = get_index(name);
-        return (idx > 0) ? _funcs[idx] : nullptr;
+        return _funcs[get_index(name)];
     }
 
     // Получение указателя на функцию по индексу
     static dist_func_t get_func(size_t idx) noexcept
     {
-        return (idx < size()) ? _funcs[idx] : nullptr;
-    }
-
-    // Количество функций
-    static constexpr size_t size() noexcept
-    {
-        return 3;
+        return (idx < _num_fun) ? _funcs[idx] : nullptr;
     }
 
 private:
-    static constexpr size_t _num_fun = 3;
+    static constexpr size_t _num_fun = 4;
 
     // Статический массив имён функций
-    static constexpr const char* _names[] = { nullptr, "cos", "l1", "l2", nullptr };
+    static constexpr const char* _names[] = { nullptr, "cos", "l1", "l2" };
 
     // Реализации функций расстояния
-    static float cos_dist(float* a, float* b, size_t len) noexcept
+    static dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
     {
-        float dot = 0.0f, norm_a = 0.0f, norm_b = 0.0f;
+        dist_float_t dot = 0.0f, norm_a = 0.0f, norm_b = 0.0f;
         for (size_t i = 0; i < len; ++i) {
             dot += a[i] * b[i];
             norm_a += a[i] * a[i];
@@ -60,19 +55,19 @@ private:
         return 1.0f - (dot / (std::sqrt(norm_a) * std::sqrt(norm_b)));
     }
 
-    static float l1_dist(float* a, float* b, size_t len) noexcept
+    static dist_float_t l1_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
     {
-        float sum = 0.0f;
+        dist_float_t sum = 0.0f;
         for (size_t i = 0; i < len; ++i)
             sum += std::abs(a[i] - b[i]);
         return sum;
     }
 
-    static float l2_dist(float* a, float* b, size_t len) noexcept
+    static dist_float_t l2_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
     {
-        float sum = 0.0f;
+        dist_float_t sum = 0.0f;
         for (size_t i = 0; i < len; ++i) {
-            float d = a[i] - b[i];
+            dist_float_t d = a[i] - b[i];
             sum += d * d;
         }
         return std::sqrt(sum);
@@ -80,7 +75,7 @@ private:
 
     // Статический массив указателей на функции
     static constexpr dist_func_t _funcs[] = {
-        &cos_dist, &l1_dist, &l2_dist, nullptr
+        nullptr, &cos_dist, &l1_dist, &l2_dist
     };
 
 };
