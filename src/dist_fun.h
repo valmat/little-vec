@@ -1,5 +1,4 @@
 #pragma once
-#include <iostream>
 #include <cstring>
 #include <cmath>
 
@@ -24,13 +23,11 @@ public:
         return (idx < _num_fun) ? _names[idx] : nullptr;
     }
 
-    // Получение указателя на функцию по имени
     static dist_func_t get_func(const char* name) noexcept
     {
         return _funcs[get_index(name)];
     }
 
-    // Получение указателя на функцию по индексу
     static dist_func_t get_func(size_t idx) noexcept
     {
         return (idx < _num_fun) ? _funcs[idx] : nullptr;
@@ -39,10 +36,9 @@ public:
 private:
     static constexpr size_t _num_fun = 4;
 
-    // Статический массив имён функций
-    static constexpr const char* _names[] = { nullptr, "cos", "l1", "l2" };
+    static const char* _names[_num_fun];
+    static dist_func_t _funcs[_num_fun];
 
-    // Реализации функций расстояния
     static dist_float_t cos_dist(dist_float_t* a, dist_float_t* b, size_t len) noexcept
     {
         dist_float_t dot = 0.0f, norm_a = 0.0f, norm_b = 0.0f;
@@ -51,7 +47,7 @@ private:
             norm_a += a[i] * a[i];
             norm_b += b[i] * b[i];
         }
-        if (norm_a == 0.0f || norm_b == 0.0f) return 1.0f; // максимальное расстояние
+        if (norm_a == 0.0f || norm_b == 0.0f) return 1.0f;
         return 1.0f - (dot / (std::sqrt(norm_a) * std::sqrt(norm_b)));
     }
 
@@ -72,14 +68,10 @@ private:
         }
         return std::sqrt(sum);
     }
-
-    // Статический массив указателей на функции
-    static constexpr dist_func_t _funcs[] = {
-        nullptr, &cos_dist, &l1_dist, &l2_dist
-    };
-
 };
 
 // Определения статических членов класса
-constexpr const char* DistFun::_names[];
-constexpr DistFun::dist_func_t DistFun::_funcs[];
+const char* DistFun::_names[DistFun::_num_fun] = { nullptr, "cos", "l1", "l2" };
+DistFun::dist_func_t DistFun::_funcs[DistFun::_num_fun] = {
+    nullptr, &DistFun::cos_dist, &DistFun::l1_dist, &DistFun::l2_dist
+};
