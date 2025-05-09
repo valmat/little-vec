@@ -12,10 +12,14 @@ OPT_FLAG=-O3 -pedantic -Wall -Wextra -fno-rtti -fno-exceptions -flto=auto
 # OPT_FLAG=-O3 -pedantic -Wall -Wextra -Wno-unused-parameter -fno-rtti -fno-exceptions
 #OPT_FLAG=-g -O3
 
+INCLUDES = -I. \
+	-I"/usr/include/rocksserver/rocksdb" \
+	-I"../deps/json/include"
+
 NAME       = little_vec
 
 CPP_STD    = -std=c++17
-CPP_FLAGS  = -I. -I"/usr/include/rocksserver/rocksdb" ${OPT_FLAG} ${CPP_STD} -fPIC -c
+CPP_FLAGS  = ${INCLUDES} ${OPT_FLAG} ${CPP_STD} -fPIC -c
 LD_FLAGS   = ${CPP_STD} ${OPT_FLAG} -shared
 
 
