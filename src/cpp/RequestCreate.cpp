@@ -24,7 +24,7 @@ void RequestCreate::run(const ProtocolInPost &in, const ProtocolOut &out) noexce
 
     std::string db_name;
     int db_dim;
-    int dist_index;
+    int dist_index = DistFun::default_index;
 
     {
         json j = json::parse(body, nullptr, false);
@@ -49,13 +49,13 @@ void RequestCreate::run(const ProtocolInPost &in, const ProtocolOut &out) noexce
 
         std::string dist_name;
         auto it_dist = j.find("dist");
-        if (it_dist == j.end() || !it_dist->is_string()) {
-            std::cerr << "Error: Missing or invalid 'dist' key." << std::endl;
-            set_error(out, "Missing or invalid 'dist' key.");
+        if (it_dist != j.end() && it_dist->is_string()) {
+            dist_name  = it_dist->get<std::string>();
+            dist_index = DistFun::get_index(dist_name.c_str());
+        } else if (it_dist != j.end() && !it_dist->is_string()) {
+            set_error(out, "Invalid 'dist' key: type must be 'string'.");
             return;
-        }
-        dist_name = it_dist->get<std::string>();
-        dist_index = DistFun::get_index(dist_name.c_str());
+        }        
     }
 
     if (db_dim <= 0) {
@@ -77,5 +77,5 @@ void RequestCreate::run(const ProtocolInPost &in, const ProtocolOut &out) noexce
     std::cout << "db_dim: " << db_dim << std::endl;
     std::cout << "dist_index: " << dist_index << std::endl;
 
-    out.setStr(body);
+    // out.setStr(body);
 }
