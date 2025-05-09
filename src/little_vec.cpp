@@ -13,7 +13,8 @@
 #include "VecDbOpts.h"
 #include "VecDb.h"
 
-#include "RequestPing.h"
+// #include "RequestPing.h"
+#include "RequestCreate.h"
 
 
 using namespace RocksServer;
@@ -43,7 +44,7 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
     auto vec_db = std::make_shared<VecDb>(opts);
 
     extension
-        .bind("/ping",       new RequestPing())
-        // .bind("/wstats",     new RequestWstats(db))
+        // .bind("/ping",         new RequestPing())
+        .bind("/create_vecdb", new RequestCreate(db))
         ;
 }
