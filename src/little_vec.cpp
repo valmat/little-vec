@@ -40,7 +40,7 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
 {
 
     VecDbOpts opts(cfg);
-    auto vec_db = std::make_shared<VecDb>(opts);
+    auto vec_db = std::make_shared<VecDb>(opts, db);
 
     extension
         .bind("/create_vecdb", new RequestCreateDb(vec_db))
