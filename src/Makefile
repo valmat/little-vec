@@ -18,7 +18,7 @@ INCLUDES = -I. \
 
 NAME       = little_vec
 
-CPP_STD    = -std=c++17
+CPP_STD    = -std=c++20
 CPP_FLAGS  = ${INCLUDES} ${OPT_FLAG} ${CPP_STD} -fPIC -c
 LD_FLAGS   = ${CPP_STD} ${OPT_FLAG} -shared
 

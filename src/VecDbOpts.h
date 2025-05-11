@@ -47,6 +47,4 @@ public:
     std::string db_key()         const && noexcept {return std::move(_db_key);}
     std::string vec_key()        const && noexcept {return std::move(_vec_key);}
     std::string payload_key()    const && noexcept {return std::move(_payload_key);}
-
-
 };

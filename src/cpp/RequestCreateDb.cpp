@@ -19,8 +19,8 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::cout << body << std::endl;
 
     std::string db_name;
-    int db_dim;
-    int dist_index = DistFun::default_index;
+    uint db_dim;
+    uint dist_index = DistFun::default_index;
 
     {
         json j = json::parse(body, nullptr, false);
@@ -41,7 +41,7 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
             set_error(out, "Missing or invalid 'dim' key.");
             return;
         }
-        db_dim = it_dim->get<int>();
+        db_dim = it_dim->get<uint>();
 
         std::string dist_name;
         auto it_dist = j.find("dist");
@@ -71,6 +71,8 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::cout << "db_name: " << db_name << std::endl;
     std::cout << "db_dim: " << db_dim << std::endl;
     std::cout << "dist_index: " << dist_index << std::endl;
+
+    _db->create_db(db_name, db_dim, dist_index);
 
     // out.setStr(body);
 }
