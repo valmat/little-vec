@@ -3,14 +3,11 @@
 #include <rocksserver/api.h>
 #include "RequestCreateDb.h"
 #include "dist_fun.h"
+#include "utils_rocks.h"
+
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-
-void set_error(const ProtocolOut &out, const char* msg) noexcept
-{
-    out.setStr(R"({"error": ")").setStr(msg).setStr(R"("})").setCode(422);
-}
 
 void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
