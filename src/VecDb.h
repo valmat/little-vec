@@ -13,7 +13,7 @@ class VecDb final
 public:
     VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept;
 
-    int create_db(const std::string& db_name, int db_dim, int dist_index) noexcept;
+    int create_db(const std::string& db_name, uint db_dim, uint dist_index) noexcept;
 
     
 

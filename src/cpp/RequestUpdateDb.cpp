@@ -21,8 +21,9 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::string db_name;
     // 
     // XXX TODO
-    // Recive index form DB for defult
+    // Recive index from DB for defult
     // 
+    
     int dist_index = DistFun::default_index;
     {
         json j = json::parse(body, nullptr, false);

@@ -1,6 +1,7 @@
 #include "VecDb.h"
 #include "dist_fun.h"
 #include "merge_args.h"
+#include "units.h"
 
 
 VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
@@ -14,15 +15,19 @@ VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
 
 }
 
-int VecDb::create_db(const std::string& db_name, int db_dim, int dist_index) noexcept
+int VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) noexcept
 {
-    auto key = merge_args(_opts.db_key(), db_name);
-    if( _db.keyExist(key) ) {
+    if ( db_dim > _opts.max_dim() ) {
         return 1;
     }
 
-    if ( !_db.incr( _opts.db_counter_key() ) ) {
+    auto key = merge_args(_opts.db_key(), db_name);
+    if( _db.keyExist(key) ) {
         return 2;
+    }
+
+    if ( !_db.incr( _opts.db_counter_key() ) ) {
+        return 3;
     }
 
     auto db_index = _db.get(_opts.db_counter_key());
@@ -32,7 +37,7 @@ int VecDb::create_db(const std::string& db_name, int db_dim, int dist_index) noe
     // std::cout << "val: "  << val << std::endl;
 
     if (!_db.set(key, val)) {
-        return 3;
+        return 4;
     }
 
     return 0;

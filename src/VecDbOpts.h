@@ -33,6 +33,13 @@ class VecDbOpts final
     // value: <payload>
     std::string _payload_key = "pld";
 
+    // 
+    // Options
+    // 
+
+    // The maximum dimension size
+    size_t _max_dim = 10000;
+
 
 public:
 
@@ -47,4 +54,7 @@ public:
     std::string db_key()         const && noexcept {return std::move(_db_key);}
     std::string vec_key()        const && noexcept {return std::move(_vec_key);}
     std::string payload_key()    const && noexcept {return std::move(_payload_key);}
+
+    size_t max_dim() const noexcept {return _max_dim;}
+
 };
