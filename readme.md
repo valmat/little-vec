@@ -95,31 +95,42 @@
 
 ### 4. Добавление / обновление вектора
 
-**POST** `/set_vector`
+**POST** `/set_vectors`
 
 ```json
 {
     "db_name": "my_vectors",
-    "id": "123",
-    "vector": [0.1, 0.2, 0.3, ...],
-    "payload": <любой json, опционально>
+    "data": [
+        {
+            "id": "123",
+            "vector": [0.1, 0.2, 0.3, ...],
+            "payload": <любой json, опционально>
+        },
+        ...
+    ]
 }
 ```
 
 - **id** (строка) — уникальный идентификатор
 - **vector** — массив из dim числовых значений (float)
-- **payload** — любой произвольный сериализуемый JSON
+- **payload** — любой произвольный сериализуемый JSON (не обязательно)
 
 ---
 
 ### 5. Удаление вектора
 
-**DELETE** `/delete_vector`
+**DELETE** `/delete_vectors`
 
 ```json
 {
     "db_name": "my_vectors",
-    "id": "123"
+    "data": [
+        {
+            "id": "123"
+        },
+        ...
+    ]
+    
 }
 ```
 
@@ -127,11 +138,11 @@
 
 ### 6. Поиск векторов
 
-**POST** `/search_vector`
+**POST** `/search_vectors`
 ```json
 {
     "db_name": "my_vectors",
-    "request": [
+    "data": [
         {
             "vector": [0.1, 0.2, 0.3, ...],
             "extra": <любой json, опционально>
