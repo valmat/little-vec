@@ -7,4 +7,8 @@ VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
 {
     std::cout << "VecDb::VecDb" << std::endl;
 
+
+    // std::cout << "_opts.db_key():"  << _opts.db_key() << std::endl;
+    // std::cout << "_opts.vec_key():" << std::move(_opts).vec_key() << std::endl;
+
 }
