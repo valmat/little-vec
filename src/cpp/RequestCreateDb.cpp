@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <rocksserver/api.h>
-#include "RequestCreate.h"
+#include "RequestCreateDb.h"
 #include "dist_fun.h"
 
 #include <nlohmann/json.hpp>
@@ -12,7 +12,7 @@ void set_error(const ProtocolOut &out, const char* msg) noexcept
     out.setStr(R"({"error": ")").setStr(msg).setStr(R"("})").setCode(422);
 }
 
-void RequestCreate::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
+void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
     if(!in.isPost() || in.isEmpty()) {
         out.setCode(422);
@@ -70,7 +70,6 @@ void RequestCreate::run(const ProtocolInPost &in, const ProtocolOut &out) noexce
         set_error(out, "DB name mast not be empty");
         return;
     }    
-
     
 
     std::cout << "db_name: " << db_name << std::endl;
