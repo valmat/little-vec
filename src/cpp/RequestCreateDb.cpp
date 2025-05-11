@@ -67,12 +67,14 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         return;
     }    
     
-
     std::cout << "db_name: " << db_name << std::endl;
     std::cout << "db_dim: " << db_dim << std::endl;
     std::cout << "dist_index: " << dist_index << std::endl;
 
-    _db->create_db(db_name, db_dim, dist_index);
+    if (!_db->create_db(db_name, db_dim, dist_index)) {
+        set_error(out, "Couldn't create a database");
+        return;
+    }    
 
-    // out.setStr(body);
+    out.setStr(R"({"success": true})");
 }
