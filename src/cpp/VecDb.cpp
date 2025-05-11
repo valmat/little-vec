@@ -1,7 +1,6 @@
 #include "VecDb.h"
 #include "dist_fun.h"
 #include "merge_args.h"
-#include "units.h"
 
 
 VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
@@ -41,4 +40,16 @@ int VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) n
     }
 
     return 0;
+}
+
+
+std::optional<DbMeta> VecDb::get_meta(std::string_view db_name) noexcept
+{
+    auto key = merge_args(_opts.db_key(), db_name);
+    std::string value;
+    if (!_db.keyExist(key, value)) {
+        return {};
+    }
+    
+    return DbMeta::deserialize(value);
 }

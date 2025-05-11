@@ -19,11 +19,7 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::cout << body << std::endl;
 
     std::string db_name;
-    // 
-    // XXX TODO
-    // Recive index from DB for defult
-    // 
-    
+
     int dist_index = DistFun::default_index;
     {
         json j = json::parse(body, nullptr, false);
@@ -39,6 +35,14 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         }
         db_name = it_name->get<std::string>();
 
+        auto meta = _db->get_meta(db_name);
+        if( !meta.has_value() ) {
+            set_error(out, "Data base doesn't exist.");
+            return;
+        }
+        dist_index = meta->dist;
+
+
         std::string dist_name;
         auto it_dist = j.find("dist");
         if (it_dist != j.end() && it_dist->is_string()) {
@@ -51,11 +55,11 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     }
 
     if (dist_index == 0) {
-        set_error(out, "Invalid 'dist' value. Unsupported distance function");
+        set_error(out, "Invalid 'dist' value. Unsupported distance function.");
         return;
     }
     if (db_name.empty()) {
-        set_error(out, "DB name mast not be empty");
+        set_error(out, "DB name mast not be empty.");
         return;
     }    
 
