@@ -1,22 +1,111 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include "RequestSearchVectors.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
-
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    if(!in.isPost() || in.isEmpty()) {
+    if (!in.isPost() || in.isEmpty()) {
         out.setCode(422);
         return;
     }
-    auto body = in.key().ToStringView();
 
+    auto body = in.key().ToStringView();
     std::cout << body << std::endl;
 
-    // out.setStr(body);
+    json j = json::parse(body, nullptr, false);
+    if (j.is_discarded() || !j.is_object()) {
+        set_error(out, "Invalid JSON.");
+        return;
+    }
+
+    // Проверка db_name
+    auto it_db_name = j.find("db_name");
+    if (it_db_name == j.end() || !it_db_name->is_string()) {
+        set_error(out, "Missing or invalid 'db_name' key.");
+        return;
+    }
+    std::string db_name = it_db_name->get<std::string>();
+    if (db_name.empty()) {
+        set_error(out, "'db_name' must not be empty.");
+        return;
+    }
+
+    // Проверка top_k
+    auto it_top_k = j.find("top_k");
+    if (it_top_k == j.end() || !it_top_k->is_number_integer()) {
+        set_error(out, "Missing or invalid 'top_k' key.");
+        return;
+    }
+    int top_k = it_top_k->get<int>();
+    if (top_k <= 0) {
+        set_error(out, "'top_k' must be greater than 0.");
+        return;
+    }
+
+    // Проверка data
+    auto it_data = j.find("data");
+    if (it_data == j.end() || !it_data->is_array() || it_data->empty()) {
+        set_error(out, "Missing or invalid 'data' key. Must be a non-empty array.");
+        return;
+    }
+
+    // Парсим первый элемент массива data
+    auto &first_item = it_data->at(0);
+    if (!first_item.is_object()) {
+        set_error(out, "Each item in 'data' must be an object.");
+        return;
+    }
+
+    // Проверка vector
+    auto it_vector = first_item.find("vector");
+    if (it_vector == first_item.end() || !it_vector->is_array() || it_vector->empty()) {
+        set_error(out, "Missing or invalid 'vector' key. Must be a non-empty array.");
+        return;
+    }
+
+    std::vector<float> vector_data;
+    vector_data.reserve(it_vector->size());
+
+    for (const auto &v : *it_vector) {
+        if (!v.is_number()) {
+            set_error(out, "All elements in 'vector' must be numeric.");
+            return;
+        }
+        vector_data.push_back(v.get<float>());
+    }
+
+    // Проверка extra (опциональное поле)
+    json extra_data = nullptr;
+    auto it_extra = first_item.find("extra");
+    if (it_extra != first_item.end()) {
+        extra_data = *it_extra; // сохраняем extra как есть
+    }
+
+    // Отладочный вывод
+    std::cout << "db_name: " << db_name << std::endl;
+    std::cout << "top_k: " << top_k << std::endl;
+    std::cout << "vector size: " << vector_data.size() << std::endl;
+    if (!extra_data.is_null()) {
+        std::cout << "extra data provided." << std::endl;
+    } else {
+        std::cout << "no extra data provided." << std::endl;
+    }
+
+    // Здесь далее будет логика поиска векторов и формирования ответа.
+    // Пока просто возвращаем обратно полученные данные для теста:
+    json response;
+    response["db_name"] = db_name;
+    response["top_k"] = top_k;
+    response["vector"] = vector_data;
+    if (!extra_data.is_null()) {
+        response["extra"] = extra_data;
+    }
+
+    out.setStr(response.dump());
 }
