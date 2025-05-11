@@ -14,7 +14,8 @@
 #include "VecDb.h"
 
 #include "RequestCreateDb.h"
-
+#include "RequestUpdateDb.h"
+#include "RequestDeleteDb.h"
 
 using namespace RocksServer;
 
@@ -44,5 +45,7 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
 
     extension
         .bind("/create_vecdb", new RequestCreateDb(vec_db))
+        .bind("/update_vecdb", new RequestUpdateDb(vec_db))
+        .bind("/delete_vecdb", new RequestDeleteDb(vec_db))
         ;
 }
