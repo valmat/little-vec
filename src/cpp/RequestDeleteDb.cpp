@@ -38,9 +38,17 @@ void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         return;
     }    
     
-    std::cout << "db_name: " << db_name << std::endl;
+    switch(_db->delete_db(db_name)) {
+        case 1:
+            set_error(out, "Data Base doesn't exist.");
+            return;
+        case 2:
+            set_error(out, "Internal RocksDB error: couldn't commit delete batch.");
+            return;
+        case 3:
+            set_error(out, "Internal RocksDB error: couldn't delete meta data.");
+            return;
+    }    
 
-    _db->delete_db(db_name);
-
-    // out.setStr(body);
+    out.setStr(R"({"success": true})");    
 }

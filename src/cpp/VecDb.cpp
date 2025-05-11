@@ -61,9 +61,6 @@ int VecDb::update_db(const std::string& db_name, std::optional<DbMeta> meta, uin
     auto key = merge_args(_opts.db_key(), db_name);
     auto val = merge_args(meta->dim, dist_index, meta->index);
 
-    // std::cout << "key: "  << key << std::endl;
-    // std::cout << "val: "  << val << std::endl;
-
     if (!_db.set(key, val)) {
         return 3;
     }
@@ -83,13 +80,6 @@ int VecDb::delete_db(const std::string& db_name) noexcept
 
 
     Batch batch;
-    
-
-    std::cout << "vec_prefix: "  << vec_prefix << std::endl;
-    std::cout << "payload_prefix: "  << payload_prefix << std::endl;
-
-
-    // auto prefix = in.key();
     auto iter(_db.newIter());
     
     // // Iterate over prefixed keys
@@ -111,33 +101,12 @@ int VecDb::delete_db(const std::string& db_name) noexcept
     }
 
     auto key = merge_args(_opts.db_key(), db_name);
-    std::cout << "key: "  << key << std::endl;
 
     if(!_db.del(key)) {
         return 3;
     }
 
-
-    // // Prefix for storing database metadata
-    // // storage format:
-    // // key: <db_key>:<db_name>
-    // // value: <dim>:<dist_fun_index>:<db_counter_index>
-    // std::string _db_key = "db";
-
-    // // Prefix for storing vectors
-    // // storage format:
-    // // key: <vec_key>:<db_counter_index>:<vec_id>
-    // // value: <vector data serialized>
-    // std::string _vec_key = "vec";
-
-    // // Prefix for storing vector payloads
-    // // storage format:
-    // // key: <payload_key>:<db_counter_index>:<vec_id>
-    // // value: <payload>
-    // std::string _payload_key = "pld";
-
     return 0;
-
 }
 
 
