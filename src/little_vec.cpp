@@ -16,6 +16,9 @@
 #include "RequestCreateDb.h"
 #include "RequestUpdateDb.h"
 #include "RequestDeleteDb.h"
+#include "RequestSetVectors.h"
+#include "RequestDelVectors.h"
+#include "RequestSearchVectors.h"
 
 using namespace RocksServer;
 
@@ -44,8 +47,11 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
     auto vec_db = std::make_shared<VecDb>(opts, db);
 
     extension
-        .bind("/create_vecdb", new RequestCreateDb(vec_db))
-        .bind("/update_vecdb", new RequestUpdateDb(vec_db))
-        .bind("/delete_vecdb", new RequestDeleteDb(vec_db))
+        .bind("/create_vecdb",   new RequestCreateDb(vec_db))
+        .bind("/update_vecdb",   new RequestUpdateDb(vec_db))
+        .bind("/delete_vecdb",   new RequestDeleteDb(vec_db))
+        .bind("/set_vectors",    new RequestSetVectors(vec_db))
+        .bind("/delete_vectors", new RequestDelVectors(vec_db))
+        .bind("/search_vectors", new RequestSearchVectors(vec_db))
         ;
 }
