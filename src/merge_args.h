@@ -14,8 +14,18 @@ std::size_t arg_size(std::string_view sv) noexcept {
     return sv.size();
 }
 
+
+std::size_t arg_size(std::nullptr_t) noexcept {
+    return 0;
+}
+
+std::size_t arg_size(const char* s) noexcept {
+    return std::string_view(s).size();
+}
+
 template <typename T>
 // requires std::is_unsigned_v<T>
+requires std::is_integral_v<T>
 constexpr std::size_t arg_size(T value) noexcept {
     std::size_t size = 0;
     do {
@@ -33,6 +43,15 @@ inline char* arg_write(char* dest, const std::string& s) noexcept {
 inline char* arg_write(char* dest, std::string_view sv) noexcept {
     return std::copy(sv.begin(), sv.end(), dest);
 }
+
+inline char* arg_write(char* dest, const char* s) noexcept {
+    return std::copy(s, s + std::strlen(s), dest);
+}
+
+inline char* arg_write(char* dest, std::nullptr_t) noexcept {
+    return dest;
+}
+
 
 template <typename T>
 // requires std::is_unsigned_v<T>

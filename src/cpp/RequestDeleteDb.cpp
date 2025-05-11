@@ -40,5 +40,7 @@ void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     
     std::cout << "db_name: " << db_name << std::endl;
 
+    _db->delete_db(db_name);
+
     // out.setStr(body);
 }

@@ -18,6 +18,8 @@ public:
     int create_db(const std::string& db_name, uint db_dim, uint dist_index) noexcept;
     int update_db(const std::string& db_name, uint dist_index) noexcept;
     int update_db(const std::string& db_name, std::optional<DbMeta> meta, uint dist_index) noexcept;
+    int delete_db(const std::string& db_name) noexcept;
+
     std::optional<DbMeta> get_meta(std::string_view db_name) noexcept;
 };
 

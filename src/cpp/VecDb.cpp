@@ -71,6 +71,75 @@ int VecDb::update_db(const std::string& db_name, std::optional<DbMeta> meta, uin
     return 0;
 }
 
+int VecDb::delete_db(const std::string& db_name) noexcept
+{
+    auto meta = get_meta(db_name);
+    if ( !meta.has_value() ) {
+        return 1;
+    }
+
+    auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
+    auto payload_prefix = merge_args(_opts.payload_key(), meta->index, nullptr);
+
+
+    Batch batch;
+    
+
+    std::cout << "vec_prefix: "  << vec_prefix << std::endl;
+    std::cout << "payload_prefix: "  << payload_prefix << std::endl;
+
+
+    // auto prefix = in.key();
+    auto iter(_db.newIter());
+    
+    // // Iterate over prefixed keys
+    for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
+        if(iter->status().ok()) {
+            batch.del(iter->key());
+        }
+    }
+    iter->Reset();
+    for (iter->Seek(payload_prefix); iter->Valid() && iter->key().starts_with(payload_prefix); iter->Next()) {
+        if(iter->status().ok()) {
+            batch.del(iter->key());
+        }
+    }
+
+    // Apply the delete-batch to the RocksDB
+    if(!_db.commit(batch)) {
+        return 2;
+    }
+
+    auto key = merge_args(_opts.db_key(), db_name);
+    std::cout << "key: "  << key << std::endl;
+
+    if(!_db.del(key)) {
+        return 3;
+    }
+
+
+    // // Prefix for storing database metadata
+    // // storage format:
+    // // key: <db_key>:<db_name>
+    // // value: <dim>:<dist_fun_index>:<db_counter_index>
+    // std::string _db_key = "db";
+
+    // // Prefix for storing vectors
+    // // storage format:
+    // // key: <vec_key>:<db_counter_index>:<vec_id>
+    // // value: <vector data serialized>
+    // std::string _vec_key = "vec";
+
+    // // Prefix for storing vector payloads
+    // // storage format:
+    // // key: <payload_key>:<db_counter_index>:<vec_id>
+    // // value: <payload>
+    // std::string _payload_key = "pld";
+
+    return 0;
+
+}
+
 
 std::optional<DbMeta> VecDb::get_meta(std::string_view db_name) noexcept
 {
