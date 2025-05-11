@@ -71,10 +71,18 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::cout << "db_dim: " << db_dim << std::endl;
     std::cout << "dist_index: " << dist_index << std::endl;
 
-    if (!_db->create_db(db_name, db_dim, dist_index)) {
-        set_error(out, "Couldn't create a database");
-        return;
+    switch(_db->create_db(db_name, db_dim, dist_index)) {
+        case 1:
+            set_error(out, "Data Base already exists");
+            return;
+        case 2:
+            set_error(out, "Internal RocksDB error: couldn't increment counter");
+            return;
+        case 3:
+            set_error(out, "Internal RocksDB error: couldn't set meta data");
+            return;
     }    
 
     out.setStr(R"({"success": true})");
+    
 }

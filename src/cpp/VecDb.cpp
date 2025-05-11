@@ -14,30 +14,26 @@ VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
 
 }
 
-bool VecDb::create_db(const std::string& db_name, int db_dim, int dist_index) noexcept
+int VecDb::create_db(const std::string& db_name, int db_dim, int dist_index) noexcept
 {
     auto key = merge_args(_opts.db_key(), db_name);
     if( _db.keyExist(key) ) {
-        return false;
+        return 1;
     }
 
-    std::cout << "db_counter_key: "  << _opts.db_counter_key() << std::endl;
-
     if ( !_db.incr( _opts.db_counter_key() ) ) {
-        return false;
+        return 2;
     }
 
     auto db_index = _db.get(_opts.db_counter_key());
-
-
     auto val = merge_args(db_dim, dist_index, db_index);
 
-    std::cout << "key: "  << key << std::endl;
-    std::cout << "val: "  << val << std::endl;
+    // std::cout << "key: "  << key << std::endl;
+    // std::cout << "val: "  << val << std::endl;
 
     if (!_db.set(key, val)) {
-        return false;
+        return 3;
     }
 
-    return true;
+    return 0;
 }
