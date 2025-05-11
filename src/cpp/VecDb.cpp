@@ -42,6 +42,35 @@ int VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) n
     return 0;
 }
 
+int VecDb::update_db(const std::string& db_name, uint dist_index) noexcept
+{
+    auto meta = get_meta(db_name);
+    if ( !meta.has_value() ) {
+        return 1;
+    }
+    return update_db(db_name, meta, dist_index);
+}
+int VecDb::update_db(const std::string& db_name, std::optional<DbMeta> meta, uint dist_index) noexcept
+{
+    if ( meta->dist == dist_index ) {
+        return 2;
+    }
+
+    meta->dist = dist_index;
+
+    auto key = merge_args(_opts.db_key(), db_name);
+    auto val = merge_args(meta->dim, dist_index, meta->index);
+
+    // std::cout << "key: "  << key << std::endl;
+    // std::cout << "val: "  << val << std::endl;
+
+    if (!_db.set(key, val)) {
+        return 3;
+    }
+
+    return 0;
+}
+
 
 std::optional<DbMeta> VecDb::get_meta(std::string_view db_name) noexcept
 {
@@ -50,6 +79,6 @@ std::optional<DbMeta> VecDb::get_meta(std::string_view db_name) noexcept
     if (!_db.keyExist(key, value)) {
         return {};
     }
-    
+
     return DbMeta::deserialize(value);
 }

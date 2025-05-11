@@ -16,10 +16,9 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     }
     auto body = in.key().ToStringView();
 
-    std::cout << body << std::endl;
 
     std::string db_name;
-
+    std::optional<DbMeta> meta;
     int dist_index = DistFun::default_index;
     {
         json j = json::parse(body, nullptr, false);
@@ -35,7 +34,7 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         }
         db_name = it_name->get<std::string>();
 
-        auto meta = _db->get_meta(db_name);
+        meta = _db->get_meta(db_name);
         if( !meta.has_value() ) {
             set_error(out, "Data base doesn't exist.");
             return;
@@ -63,8 +62,20 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         return;
     }    
 
-    std::cout << "db_name: " << db_name << std::endl;
-    std::cout << "dist_index: " << dist_index << std::endl;
+    // std::cout << "db_name: " << db_name << std::endl;
+    // std::cout << "dist_index: " << dist_index << std::endl;
 
-    // out.setStr(body);
+    switch(_db->update_db(db_name, meta, dist_index)) {
+        case 1:
+            set_error(out, "Data Base doesn't exist.");
+            return;
+        case 2:
+            set_error(out, "Nothing changed.");
+            return;
+        case 3:
+            set_error(out, "Internal RocksDB error: couldn't set meta data");
+            return;
+    }    
+
+    out.setStr(R"({"success": true})");    
 }
