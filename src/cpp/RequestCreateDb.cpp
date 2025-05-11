@@ -1,6 +1,5 @@
 #include <iostream>
 #include <string>
-#include <rocksserver/api.h>
 #include "RequestCreateDb.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
@@ -64,7 +63,7 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         return;
     }
     if (db_name.empty()) {
-        set_error(out, "DB name mast not be empty");
+        set_error(out, "DB name must not be empty");
         return;
     }    
     

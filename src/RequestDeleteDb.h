@@ -5,14 +5,14 @@
 
 using namespace RocksServer;
 
-class RequestCreateDb final : public RequestBase<ProtocolInPost, ProtocolOut>
+class RequestDeleteDb final : public RequestBase<ProtocolInPost, ProtocolOut>
 {
 public:
-    RequestCreateDb(std::shared_ptr<VecDb> db) noexcept : _db(db) {}
+    RequestDeleteDb(std::shared_ptr<VecDb> db) noexcept : _db(db) {}
 
     virtual void run(const ProtocolInPost &in, const ProtocolOut &out) noexcept final;
 
-    virtual ~RequestCreateDb() = default;
+    virtual ~RequestDeleteDb() = default;
 private:
 
     std::shared_ptr<VecDb> _db;
