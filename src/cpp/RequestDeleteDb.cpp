@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include "RequestDeleteDb.h"
-#include "dist_fun.h"
 #include "utils_rocks.h"
 
 
