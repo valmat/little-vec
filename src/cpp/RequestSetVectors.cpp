@@ -14,12 +14,9 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
         out.setCode(422);
         return;
     }
-
     auto body = in.key().ToStringView();
 
-    std::cout << body << std::endl;
-
-    json j = json::parse(body, nullptr, false);
+    const json j = json::parse(body, nullptr, false);
     if (j.is_discarded() || !j.is_object()) [[unlikely]] {
         set_error(out, "Invalid JSON.");
         return;
@@ -31,9 +28,15 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
         set_error(out, "Missing or invalid 'db_name' key.");
         return;
     }
-    std::string db_name = it_db_name->get<std::string>();
+    auto db_name = it_db_name->get<std::string_view>();
     if (db_name.empty()) [[unlikely]] {
         set_error(out, "'db_name' must not be empty.");
+        return;
+    }
+
+    auto meta = _db->get_meta(db_name);
+    if( !meta.has_value() ) [[unlikely]] {
+        set_error(out, "Data base doesn't exist.");
         return;
     }
 
@@ -44,6 +47,8 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
         return;
     }
 
+    std::vector<char> vector_serialized;
+    vector_serialized.resize(serialize_buf_bytes_len(meta->dim));    
     for (const auto& item : *it_data) {
         if (!item.is_object()) [[unlikely]] {
             set_error(out, "Each item in 'data' array must be an object.");
@@ -56,10 +61,17 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
             set_error(out, "Missing or invalid 'id' key in 'data' item.");
             return;
         }
-        std::string id = it_id->get<std::string>();
+        auto id = it_id->get<std::string_view>();
         if (id.empty()) [[unlikely]] {
             set_error(out, "'id' must not be empty.");
             return;
+        }
+
+        // Поле "payload" опционально, если есть - проверим, что это объект
+        std::string payload{};
+        auto it_payload = item.find("payload");
+        if (it_payload != item.end()) {
+            payload = it_payload->dump();
         }
 
         // Проверка поля "vector"
@@ -70,13 +82,14 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
         }
 
         if (it_vector->empty()) [[unlikely]] {
-            set_error(out, "'vector' must not be empty.");
+            set_error(out, "Value of 'vector' must not be empty.");
             return;
-        }        
+        }
+        if (it_vector->size() != meta->dim) [[unlikely]] {
+            set_error(out, "Demention of 'vector' must match db demention.");
+            return;
+        }
 
-        // XXX TODO: проверять размерность
-        std::vector<char> vector_serialized;
-        vector_serialized.resize(serialize_buf_bytes_len(it_vector->size()));
         auto vector_ser_it = vector_serialized.data();
         for (const auto& val : *it_vector) {
             if (!val.is_number()) [[unlikely]] {
@@ -84,45 +97,36 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
                 return;
             }
             vector_ser_it = serialize_val(val.get<float>(), vector_ser_it);
-        }        
+        }
 
         
         // DBG
+        // Remove this block after testing
         std::vector<float> vector_data = deserialize_to_vec(vector_serialized.data(), it_vector->size());
         std::cout << "vector_data: " << std::endl;
         for (const auto& val : vector_data) {
             std::cout << " " << val;
         }
         std::cout << std::endl;
-
-
-
-        // Поле "payload" опционально, если есть - проверим, что это объект
-        auto it_payload = item.find("payload");
-        if (it_payload != item.end() && !it_payload->is_object()) [[unlikely]] {
-            set_error(out, "Invalid 'payload' key in 'data' item. Must be an object.");
-            return;
-        }
-
         // Выводим данные для отладки
         std::cout << "db_name: " << db_name << std::endl;
         std::cout << "id: " << id << std::endl;
         std::cout << "vector size: " << vector_data.size() << std::endl;
-
-        if (it_payload != item.end()) [[unlikely]] {
-            std::cout << "payload: " << it_payload->dump() << std::endl;
+        if (it_payload != item.end()) {
+            std::cout << "payload: " << payload << std::endl;
         } else {
             std::cout << "payload: (none)" << std::endl;
         }
 
-        // Здесь далее будет логика сохранения/обновления вектора в БД
-        // ...
+
+
+        
+
+        if (const char* err = _db->set_vec(meta, id, vector_serialized, payload); err != nullptr) [[unlikely]] {
+            set_error(out, err);
+            return;
+        }
     }
 
-    // Если всё прошло успешно, отправляем ответ клиенту
-    json response;
-    response["success"] = true;
-    response["message"] = "Vectors processed successfully.";
-    out.setStr(response.dump());
-
+    out.setStr(R"({"success": true})");
 }

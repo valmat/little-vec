@@ -17,7 +17,7 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     auto body = in.key().ToStringView();
 
 
-    std::string db_name;
+    std::string_view db_name;
     std::optional<DbMeta> meta;
     int dist_index = DistFun::default_index;
     {
@@ -32,7 +32,7 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
             set_error(out, "Missing or invalid 'name' key.");
             return;
         }
-        db_name = it_name->get<std::string>();
+        db_name = it_name->get<std::string_view>();
 
         meta = _db->get_meta(db_name);
         if( !meta.has_value() ) [[unlikely]] {
@@ -69,5 +69,5 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         set_error(out, err);
         return;
     }
-    out.setStr(R"({"success": true})");   
+    out.setStr(R"({"success": true})");
 }

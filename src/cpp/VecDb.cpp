@@ -14,7 +14,7 @@ VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
 
 }
 
-const char* VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) noexcept
+const char* VecDb::create_db(std::string_view db_name, uint db_dim, uint dist_index) noexcept
 {
     if ( db_dim > _opts.max_dim() ) [[unlikely]] {
         return "The maximum dimension size has been exceeded.";
@@ -42,7 +42,7 @@ const char* VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_
     return nullptr;
 }
 
-const char* VecDb::update_db(const std::string& db_name, uint dist_index) noexcept
+const char* VecDb::update_db(std::string_view db_name, uint dist_index) noexcept
 {
     auto meta = get_meta(db_name);
     if ( !meta.has_value() ) [[unlikely]] {
@@ -50,7 +50,7 @@ const char* VecDb::update_db(const std::string& db_name, uint dist_index) noexce
     }
     return update_db(db_name, meta, dist_index);
 }
-const char* VecDb::update_db(const std::string& db_name, std::optional<DbMeta> meta, uint dist_index) noexcept
+const char* VecDb::update_db(std::string_view db_name, std::optional<DbMeta> meta, uint dist_index) noexcept
 {
     if ( meta->dist == dist_index ) [[unlikely]] {
         return "Nothing changed.";
@@ -68,7 +68,7 @@ const char* VecDb::update_db(const std::string& db_name, std::optional<DbMeta> m
     return 0;
 }
 
-const char* VecDb::delete_db(const std::string& db_name) noexcept
+const char* VecDb::delete_db(std::string_view db_name) noexcept
 {
     auto meta = get_meta(db_name);
     if ( !meta.has_value() ) [[unlikely]] {
@@ -119,4 +119,24 @@ std::optional<DbMeta> VecDb::get_meta(std::string_view db_name) noexcept
     }
 
     return DbMeta::deserialize(value);
+}
+
+const char* VecDb::set_vec(
+    std::optional<DbMeta> meta,
+    std::string_view id,
+    const std::vector<char>& vector_serialized,
+    std::string_view payload) noexcept
+{
+    auto key = merge_args(_opts.vec_key(), meta->index, id);
+    rocksdb::Slice value(vector_serialized.data(), vector_serialized.size());
+    if (!_db.set(key, value)) [[unlikely]] {
+        return "Internal RocksDB error: couldn't set vector data.";
+    }
+
+    key = merge_args(_opts.payload_key(), meta->index, id);
+    if (!_db.set(key, payload)) [[unlikely]] {
+        return "Internal RocksDB error: couldn't set payload data.";
+    }
+
+    return nullptr;
 }
