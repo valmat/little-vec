@@ -65,17 +65,9 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     // std::cout << "db_name: " << db_name << std::endl;
     // std::cout << "dist_index: " << dist_index << std::endl;
 
-    switch(_db->update_db(db_name, meta, dist_index)) {
-        case 1:
-            set_error(out, "Data Base doesn't exist.");
-            return;
-        case 2:
-            set_error(out, "Nothing changed.");
-            return;
-        case 3:
-            set_error(out, "Internal RocksDB error: couldn't set meta data");
-            return;
-    }    
-
-    out.setStr(R"({"success": true})");    
+    if (const char* err = _db->update_db(db_name, meta, dist_index); err != nullptr) [[unlikely]] {
+        set_error(out, err);
+        return;
+    }
+    out.setStr(R"({"success": true})");   
 }

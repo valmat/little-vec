@@ -69,20 +69,10 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::cout << "db_dim: " << db_dim << std::endl;
     std::cout << "dist_index: " << dist_index << std::endl;
 
-    switch(_db->create_db(db_name, db_dim, dist_index)) {
-        case 1:
-            set_error(out, "The maximum dimension size has been exceeded");
-            return;
-        case 2:
-            set_error(out, "Data Base already exists");
-            return;
-        case 3:
-            set_error(out, "Internal RocksDB error: couldn't increment counter");
-            return;
-        case 4:
-            set_error(out, "Internal RocksDB error: couldn't set meta data");
-            return;
-    }    
+    if (const char* err = _db->create_db(db_name, db_dim, dist_index); err != nullptr) [[unlikely]] {
+        set_error(out, err);
+        return;
+    }
+    out.setStr(R"({"success": true})");    
 
-    out.setStr(R"({"success": true})");
 }

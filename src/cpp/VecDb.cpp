@@ -14,19 +14,19 @@ VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
 
 }
 
-int VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) noexcept
+const char* VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) noexcept
 {
     if ( db_dim > _opts.max_dim() ) {
-        return 1;
+        return "The maximum dimension size has been exceeded.";
     }
 
     auto key = merge_args(_opts.db_key(), db_name);
     if( _db.keyExist(key) ) {
-        return 2;
+        return "Data Base already exists.";
     }
 
     if ( !_db.incr( _opts.db_counter_key() ) ) {
-        return 3;
+        return "Internal RocksDB error: couldn't increment counter.";
     }
 
     auto db_index = _db.get(_opts.db_counter_key());
@@ -36,24 +36,24 @@ int VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) n
     // std::cout << "val: "  << val << std::endl;
 
     if (!_db.set(key, val)) {
-        return 4;
+        return "Internal RocksDB error: couldn't set meta data.";
     }
 
-    return 0;
+    return nullptr;
 }
 
-int VecDb::update_db(const std::string& db_name, uint dist_index) noexcept
+const char* VecDb::update_db(const std::string& db_name, uint dist_index) noexcept
 {
     auto meta = get_meta(db_name);
-    if ( !meta.has_value() ) {
-        return 1;
+    if ( !meta.has_value() ) [[unlikely]] {
+        return "Data Base doesn't exist.";
     }
     return update_db(db_name, meta, dist_index);
 }
-int VecDb::update_db(const std::string& db_name, std::optional<DbMeta> meta, uint dist_index) noexcept
+const char* VecDb::update_db(const std::string& db_name, std::optional<DbMeta> meta, uint dist_index) noexcept
 {
-    if ( meta->dist == dist_index ) {
-        return 2;
+    if ( meta->dist == dist_index ) [[unlikely]] {
+        return "Nothing changed.";
     }
 
     meta->dist = dist_index;
@@ -61,18 +61,18 @@ int VecDb::update_db(const std::string& db_name, std::optional<DbMeta> meta, uin
     auto key = merge_args(_opts.db_key(), db_name);
     auto val = merge_args(meta->dim, dist_index, meta->index);
 
-    if (!_db.set(key, val)) {
-        return 3;
+    if (!_db.set(key, val)) [[unlikely]] {
+        return "Internal RocksDB error: couldn't set meta data";
     }
 
     return 0;
 }
 
-int VecDb::delete_db(const std::string& db_name) noexcept
+const char* VecDb::delete_db(const std::string& db_name) noexcept
 {
     auto meta = get_meta(db_name);
-    if ( !meta.has_value() ) {
-        return 1;
+    if ( !meta.has_value() ) [[unlikely]] {
+        return "Data Base doesn't exist.";
     }
 
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
@@ -84,29 +84,29 @@ int VecDb::delete_db(const std::string& db_name) noexcept
     
     // // Iterate over prefixed keys
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
-        if(iter->status().ok()) {
+        if(iter->status().ok()) [[likely]] {
             batch.del(iter->key());
         }
     }
     iter->Reset();
     for (iter->Seek(payload_prefix); iter->Valid() && iter->key().starts_with(payload_prefix); iter->Next()) {
-        if(iter->status().ok()) {
+        if(iter->status().ok()) [[likely]] {
             batch.del(iter->key());
         }
     }
 
     // Apply the delete-batch to the RocksDB
-    if(!_db.commit(batch)) {
-        return 2;
+    if(!_db.commit(batch)) [[unlikely]] {
+        return "Internal RocksDB error: couldn't commit delete batch.";
     }
 
     auto key = merge_args(_opts.db_key(), db_name);
 
-    if(!_db.del(key)) {
-        return 3;
+    if(!_db.del(key)) [[unlikely]] {
+        return "Internal RocksDB error: couldn't delete meta data.";
     }
 
-    return 0;
+    return nullptr;
 }
 
 

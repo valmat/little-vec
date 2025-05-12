@@ -36,19 +36,11 @@ void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     if (db_name.empty()) {
         set_error(out, "DB name must not be empty");
         return;
-    }    
-    
-    switch(_db->delete_db(db_name)) {
-        case 1:
-            set_error(out, "Data Base doesn't exist.");
-            return;
-        case 2:
-            set_error(out, "Internal RocksDB error: couldn't commit delete batch.");
-            return;
-        case 3:
-            set_error(out, "Internal RocksDB error: couldn't delete meta data.");
-            return;
-    }    
+    }
 
+    if (const char* err = _db->delete_db(db_name); err != nullptr) [[unlikely]] {
+        set_error(out, err);
+        return;
+    }
     out.setStr(R"({"success": true})");    
 }
