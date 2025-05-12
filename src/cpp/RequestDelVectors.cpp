@@ -39,7 +39,7 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
         if( !meta.has_value() ) [[unlikely]] {
             set_error(out, "Data base doesn't exist.");
             return;
-        }        
+        }
 
         auto it_data = j.find("data");
         if (it_data == j.end() || !it_data->is_array()) [[unlikely]] {

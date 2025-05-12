@@ -15,10 +15,7 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
         return;
     }
 
-    auto body = in.key().ToStringView();
-    std::cout << body << std::endl;
-
-    const json j = json::parse(body, nullptr, false);
+    const json j = json::parse(in.key().ToStringView(), nullptr, false);
     if (j.is_discarded() || !j.is_object()) [[unlikely]] {
         set_error(out, "Invalid JSON.");
         return;
@@ -35,18 +32,21 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
         set_error(out, "'db_name' must not be empty.");
         return;
     }
+    auto meta = _db->get_meta(db_name);
+    if( !meta.has_value() ) [[unlikely]] {
+        set_error(out, "Data base doesn't exist.");
+        return;
+    }
 
-    // Проверка top_k
+    size_t top_k = _opts.top_k();
     auto it_top_k = j.find("top_k");
-    if (it_top_k == j.end() || !it_top_k->is_number_integer()) [[unlikely]] {
-        set_error(out, "Missing or invalid 'top_k' key.");
+    if (it_top_k != j.end() && !it_top_k->is_number_integer()) [[unlikely]] {
+        set_error(out, "Value of 'top_k' must be integer.");
         return;
+    } else if (it_top_k != j.end()) [[unlikely]] {
+        top_k = it_top_k->get<size_t>();
     }
-    int top_k = it_top_k->get<int>();
-    if (top_k <= 0) [[unlikely]] {
-        set_error(out, "'top_k' must be greater than 0.");
-        return;
-    }
+    
 
     // Проверка data
     auto it_data = j.find("data");

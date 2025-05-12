@@ -40,6 +40,11 @@ class VecDbOpts final
     // The maximum dimension size
     size_t _max_dim = 10000;
 
+    // Default value for top_k parameter
+    size_t _top_k = 5;
+
+    // JSON indent
+    int _json_indent = 2;
 
 public:
 
@@ -55,6 +60,8 @@ public:
     std::string vec_key()        const && noexcept {return std::move(_vec_key);}
     std::string payload_key()    const && noexcept {return std::move(_payload_key);}
 
-    size_t max_dim() const noexcept {return _max_dim;}
+    size_t max_dim()  const noexcept {return _max_dim;}
+    size_t top_k()    const noexcept {return _top_k;}
+    int json_indent() const noexcept {return _json_indent;}
 
 };
