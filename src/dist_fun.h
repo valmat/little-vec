@@ -1,5 +1,6 @@
 #pragma once
 #include <cstddef>
+#include <string_view>
 
 using dist_float_t = float;
 
@@ -9,6 +10,7 @@ struct DistFun final
     static constexpr size_t default_index = 1;
 
     static size_t get_index(const char* name) noexcept;
+    static size_t get_index(std::string_view name) noexcept;
     static const char* get_name(size_t idx) noexcept;
     static dist_func_t get_func(const char* name) noexcept;
     static dist_func_t get_func(size_t idx) noexcept;

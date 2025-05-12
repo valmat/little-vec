@@ -17,9 +17,9 @@ void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
 
     std::cout << body << std::endl;
 
-    std::string db_name;
+    std::string_view db_name;
     {
-        json j = json::parse(body, nullptr, false);
+        const json j = json::parse(body, nullptr, false);
         if (j.is_discarded() || !j.is_object()) [[unlikely]] {
             set_error(out, "Invalid JSON.");
             return;
@@ -30,7 +30,7 @@ void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
             set_error(out, "Missing or invalid 'name' key.");
             return;
         }
-        db_name = it_name->get<std::string>();
+        db_name = it_name->get<std::string_view>();
     }
 
     if (db_name.empty()) [[unlikely]] {

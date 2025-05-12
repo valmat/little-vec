@@ -16,12 +16,12 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     }
     auto body = in.key().ToStringView();
 
-    std::string db_name;
+    std::string_view db_name;
     uint db_dim;
     uint dist_index = DistFun::default_index;
 
     {
-        json j = json::parse(body, nullptr, false);
+        const json j = json::parse(body, nullptr, false);
         if (j.is_discarded() || !j.is_object()) [[unlikely]] {
             set_error(out, "Invalid JSON.");
             return;
@@ -32,7 +32,7 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
             set_error(out, "Missing or invalid 'name' key.");
             return;
         }
-        db_name = it_name->get<std::string>();
+        db_name = it_name->get<std::string_view>();
 
         auto it_dim = j.find("dim");
         if (it_dim == j.end() || !it_dim->is_number_integer()) [[unlikely]] {
@@ -41,11 +41,11 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         }
         db_dim = it_dim->get<uint>();
 
-        std::string dist_name;
+        std::string_view dist_name;
         auto it_dist = j.find("dist");
         if (it_dist != j.end() && it_dist->is_string()) {
-            dist_name  = it_dist->get<std::string>();
-            dist_index = DistFun::get_index(dist_name.c_str());
+            dist_name  = it_dist->get<std::string_view>();
+            dist_index = DistFun::get_index(dist_name);
         } else if (it_dist != j.end() && !it_dist->is_string()) {
             set_error(out, "Invalid 'dist' key: type must be 'string'.");
             return;

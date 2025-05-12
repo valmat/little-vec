@@ -18,11 +18,11 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
 
     std::cout << body << std::endl;
 
-    std::string db_name;
-    std::vector<std::string> vector_ids;
+    std::string_view db_name;
+    std::vector<std::string_view> vector_ids;
 
     {
-        json j = json::parse(body, nullptr, false);
+        const json j = json::parse(body, nullptr, false);
         if (j.is_discarded() || !j.is_object()) [[unlikely]] {
             set_error(out, "Invalid JSON.");
             return;
@@ -34,7 +34,7 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
             set_error(out, "Missing or invalid 'db_name' key.");
             return;
         }
-        db_name = it_db_name->get<std::string>();
+        db_name = it_db_name->get<std::string_view>();
         if (db_name.empty()) [[unlikely]] {
             set_error(out, "'db_name' must not be empty.");
             return;
@@ -58,7 +58,7 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
                 set_error(out, "Missing or invalid 'id' key in 'data' item.");
                 return;
             }
-            std::string id = it_id->get<std::string>();
+            std::string_view id = it_id->get<std::string_view>();
             if (id.empty()) [[unlikely]] {
                 set_error(out, "'id' in 'data' item must not be empty.");
                 return;

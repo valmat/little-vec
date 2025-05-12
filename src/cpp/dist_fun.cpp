@@ -30,6 +30,16 @@ size_t DistFun::get_index(const char* name) noexcept
     return 0;
 }
 
+size_t DistFun::get_index(std::string_view name) noexcept
+{
+    for (size_t i = 1; i < DistFun::_num_fun; ++i) {
+        if (name == DistFun::_names[i]) {
+            return i;
+        }
+    }
+    return 0;
+}
+
 const char* DistFun::get_name(size_t idx) noexcept
 {
     return (idx < _num_fun) ? _names[idx] : nullptr;

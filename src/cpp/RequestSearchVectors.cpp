@@ -18,7 +18,7 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
     auto body = in.key().ToStringView();
     std::cout << body << std::endl;
 
-    json j = json::parse(body, nullptr, false);
+    const json j = json::parse(body, nullptr, false);
     if (j.is_discarded() || !j.is_object()) [[unlikely]] {
         set_error(out, "Invalid JSON.");
         return;
@@ -30,7 +30,7 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
         set_error(out, "Missing or invalid 'db_name' key.");
         return;
     }
-    std::string db_name = it_db_name->get<std::string>();
+    std::string_view db_name = it_db_name->get<std::string_view>();
     if (db_name.empty()) [[unlikely]] {
         set_error(out, "'db_name' must not be empty.");
         return;
