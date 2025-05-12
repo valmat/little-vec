@@ -29,5 +29,9 @@ public:
         std::string_view id,
         const std::vector<char>& vector_serialized,
         std::string_view payload) noexcept;
+
+    const char* del_vec(
+        std::optional<DbMeta> meta,
+        const std::vector<std::string_view>& ids) noexcept;
 };
 

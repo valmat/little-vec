@@ -18,13 +18,13 @@ void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::cout << body << std::endl;
 
     std::string_view db_name;
+    const json j = json::parse(body, nullptr, false);
+    if (j.is_discarded() || !j.is_object()) [[unlikely]] {
+        set_error(out, "Invalid JSON.");
+        return;
+    }
+    
     {
-        const json j = json::parse(body, nullptr, false);
-        if (j.is_discarded() || !j.is_object()) [[unlikely]] {
-            set_error(out, "Invalid JSON.");
-            return;
-        }
-
         auto it_name = j.find("name");
         if (it_name == j.end() || !it_name->is_string()) [[unlikely]] {
             set_error(out, "Missing or invalid 'name' key.");

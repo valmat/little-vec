@@ -16,23 +16,26 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     }
     auto body = in.key().ToStringView();
 
-
     std::string_view db_name;
     std::optional<DbMeta> meta;
-    int dist_index = DistFun::default_index;
-    {
-        const json j = json::parse(body, nullptr, false);
-        if (j.is_discarded() || !j.is_object()) [[unlikely]] {
-            set_error(out, "Invalid JSON.");
-            return;
-        }
+    uint dist_index = DistFun::default_index;
+    const json j = json::parse(body, nullptr, false);
+    if (j.is_discarded() || !j.is_object()) [[unlikely]] {
+        set_error(out, "Invalid JSON.");
+        return;
+    }
 
+    {
         auto it_name = j.find("name");
         if (it_name == j.end() || !it_name->is_string()) [[unlikely]] {
             set_error(out, "Missing or invalid 'name' key.");
             return;
         }
         db_name = it_name->get<std::string_view>();
+        if (db_name.empty()) [[unlikely]] {
+            set_error(out, "DB name mast not be empty.");
+            return;
+        }
 
         meta = _db->get_meta(db_name);
         if( !meta.has_value() ) [[unlikely]] {
@@ -40,7 +43,6 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
             return;
         }
         dist_index = meta->dist;
-
 
         std::string_view dist_name;
         auto it_dist = j.find("dist");
@@ -50,20 +52,12 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         } else if (it_dist != j.end() && !it_dist->is_string()) {
             set_error(out, "Invalid 'dist' key: type must be 'string'.");
             return;
-        }        
+        }
+        if (dist_index == 0) [[unlikely]] {
+            set_error(out, "Invalid 'dist' value. Unsupported distance function.");
+            return;
+        }
     }
-
-    if (dist_index == 0) [[unlikely]] {
-        set_error(out, "Invalid 'dist' value. Unsupported distance function.");
-        return;
-    }
-    if (db_name.empty()) [[unlikely]] {
-        set_error(out, "DB name mast not be empty.");
-        return;
-    }    
-
-    // std::cout << "db_name: " << db_name << std::endl;
-    // std::cout << "dist_index: " << dist_index << std::endl;
 
     if (const char* err = _db->update_db(db_name, meta, dist_index); err != nullptr) [[unlikely]] {
         set_error(out, err);

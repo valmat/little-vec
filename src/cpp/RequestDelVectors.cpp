@@ -15,14 +15,11 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
     }
 
     auto body = in.key().ToStringView();
-
-    std::cout << body << std::endl;
-
     std::string_view db_name;
-    std::vector<std::string_view> vector_ids;
-
+    std::vector<std::string_view> ids;
+    std::optional<DbMeta> meta;
+    const json j = json::parse(body, nullptr, false);
     {
-        const json j = json::parse(body, nullptr, false);
         if (j.is_discarded() || !j.is_object()) [[unlikely]] {
             set_error(out, "Invalid JSON.");
             return;
@@ -39,6 +36,11 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
             set_error(out, "'db_name' must not be empty.");
             return;
         }
+        meta = _db->get_meta(db_name);
+        if( !meta.has_value() ) [[unlikely]] {
+            set_error(out, "Data base doesn't exist.");
+            return;
+        }        
 
         // Проверяем наличие и корректность поля "data"
         auto it_data = j.find("data");
@@ -46,6 +48,12 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
             set_error(out, "Missing or invalid 'data' key. Expected array.");
             return;
         }
+        if (it_data->empty()) [[unlikely]] {
+            set_error(out, "'data' array must contain at least one item.");
+            return;
+        }
+
+        ids.reserve(it_data->size());
 
         // Парсим массив идентификаторов
         for (const auto& item : *it_data) {
@@ -58,29 +66,26 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
                 set_error(out, "Missing or invalid 'id' key in 'data' item.");
                 return;
             }
-            std::string_view id = it_id->get<std::string_view>();
+            auto id = it_id->get<std::string_view>();
             if (id.empty()) [[unlikely]] {
                 set_error(out, "'id' in 'data' item must not be empty.");
                 return;
             }
-            vector_ids.push_back(id);
-        }
-
-        if (vector_ids.empty()) [[unlikely]] {
-            set_error(out, "'data' array must contain at least one item.");
-            return;
+            ids.push_back(id);
         }
     }
 
     // Выводим для отладки
     std::cout << "db_name: " << db_name << std::endl;
-    std::cout << "vector_ids to delete:" << std::endl;
-    for (const auto& id : vector_ids) {
+    std::cout << "ids to delete:" << std::endl;
+    for (const auto& id : ids) {
         std::cout << " - " << id << std::endl;
     }
 
-    // Здесь будет логика удаления векторов по идентификаторам из базы данных
-    // ...
+    if (const char* err = _db->del_vec(meta, ids); err != nullptr) [[unlikely]] {
+        set_error(out, err);
+        return;
+    }
 
-    // out.setStr(body);
+    out.setStr(R"({"success": true})");
 }
