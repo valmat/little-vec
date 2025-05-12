@@ -3,6 +3,7 @@
 #include "RequestSetVectors.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
+#include "utils.h"
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -83,6 +84,30 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
             return;
         }
 
+        
+
+        // Dbg
+        std::cout << "vector_data: " << std::endl;
+        for (const auto& val : vector_data) {
+            std::cout << " " << val;
+        }
+        std::cout << std::endl;
+
+        std::vector<char> serialized;
+        serialized.resize(vector_data.size() * 4);
+        serialize_vec(vector_data.data(), vector_data.size(), serialized.data());
+        deserialize_vec(serialized.data(), vector_data.size(), vector_data.data());
+
+        std::cout << "vector_data: " << std::endl;
+        for (const auto& val : vector_data) {
+            std::cout << " " << val;
+        }
+        std::cout << std::endl;
+
+
+        
+
+
         // Поле "payload" опционально, если есть - проверим, что это объект
         auto it_payload = item.find("payload");
         if (it_payload != item.end() && !it_payload->is_object()) [[unlikely]] {
@@ -107,7 +132,7 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
 
     // Если всё прошло успешно, отправляем ответ клиенту
     json response;
-    response["status"] = "success";
+    response["success"] = true;
     response["message"] = "Vectors processed successfully.";
     out.setStr(response.dump());
 
