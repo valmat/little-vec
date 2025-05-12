@@ -33,4 +33,9 @@ public:
     const char* del_vec(
         std::optional<DbMeta> meta,
         const std::vector<std::string_view>& ids) noexcept;
+
+    const char* search_vec(
+        std::optional<DbMeta> meta,
+        const std::vector<std::vector<float>>& vectors, 
+        size_t top_k) noexcept;
 };

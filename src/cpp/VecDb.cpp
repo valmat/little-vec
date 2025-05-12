@@ -229,3 +229,27 @@ const char* VecDb::del_vec(
 
     return nullptr;
 }
+
+
+const char* VecDb::search_vec(
+    std::optional<DbMeta> meta,
+    const std::vector<std::vector<float>>& vectors, 
+    size_t top_k) noexcept
+{
+
+    // auto payload_prefix = merge_args(_opts.payload_key(), meta->index, nullptr);
+
+
+    auto iter(_db.newIter());
+    
+    auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
+    for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
+        if (iter->status().ok()) [[likely]] {
+            
+            std::cout << "key: " << iter->key().ToStringView() << std::endl;
+            // std::cout << "value: " << iter->value().ToStringView() << std::endl << std::endl;
+        }
+    }    
+
+    return nullptr;
+}

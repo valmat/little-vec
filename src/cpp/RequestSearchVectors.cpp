@@ -122,10 +122,10 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
     std::cout << "top_k: " << top_k << std::endl;
     // std::cout << "vector size: " << vector_data.size() << std::endl;
 
-    // if (const char* err = _db->search_vec(meta, vectors, top_k); err != nullptr) [[unlikely]] {
-    //     set_error(out, err);
-    //     return;
-    // }
+    if (const char* err = _db->search_vec(meta, vectors, top_k); err != nullptr) [[unlikely]] {
+        set_error(out, err);
+        return;
+    }
 
     out.setStr(json({{"results", results}}).dump(_opts.json_indent()));
 }
