@@ -56,10 +56,10 @@ dist_float_t cos_dist(const dist_float_t* a, const dist_float_t* b, size_t len) 
 
     constexpr dist_float_t eps = std::numeric_limits<dist_float_t>::epsilon() * 100;
 
-    if (norm_a <= eps && norm_b <= eps) {
+    if (norm_a <= eps && norm_b <= eps) [[unlikely]] {
         return 0.0f;
     }
-    if (norm_a <= eps || norm_b <= eps) {
+    if (norm_a <= eps || norm_b <= eps) [[unlikely]] {
         return 1.0f;
     }
 
