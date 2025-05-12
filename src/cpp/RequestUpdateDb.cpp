@@ -4,7 +4,6 @@
 #include "dist_fun.h"
 #include "utils_rocks.h"
 
-
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 

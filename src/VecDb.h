@@ -34,4 +34,3 @@ public:
         std::optional<DbMeta> meta,
         const std::vector<std::string_view>& ids) noexcept;
 };
-

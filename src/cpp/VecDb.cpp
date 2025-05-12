@@ -222,8 +222,6 @@ const char* VecDb::del_vec(
     batch.del(MergedIterable(_opts.vec_key(), meta->index, ids));
     batch.del(MergedIterable(_opts.payload_key(), meta->index, ids));
 
-    // std::cout << "batch: " << batch.data() << std::endl;
-
     // Apply the delete-batch to the RocksDB
     if (!_db.commit(batch)) [[unlikely]] {
         return "Internal RocksDB error: couldn't commit delete batch.";
