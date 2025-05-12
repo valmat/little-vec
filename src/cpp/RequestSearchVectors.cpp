@@ -55,57 +55,77 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
         return;
     }
 
-    // Парсим первый элемент массива data
-    auto &first_item = it_data->at(0);
-    if (!first_item.is_object()) [[unlikely]] {
-        set_error(out, "Each item in 'data' must be an object.");
-        return;
-    }
+    json results{};
 
-    // Проверка vector
-    auto it_vector = first_item.find("vector");
-    if (it_vector == first_item.end() || !it_vector->is_array() || it_vector->empty()) [[unlikely]] {
-        set_error(out, "Missing or invalid 'vector' key. Must be a non-empty array.");
-        return;
-    }
+    // "results": [
+    //     {
+    //         "nearest": [
+    //             { "id": "123", "distance": 0.123, "payload": ... },
+    //             ...
+    //         ],
+    //         "extra": ... // если extra был передан в запросе
+    //     },
+    //     ...
+    // ]    
 
-    std::vector<float> vector_data;
-    vector_data.reserve(it_vector->size());
+    std::vector<std::vector<float>> vectors;
+    vectors.reserve(it_data->size());
+    for (const auto& item : *it_data) {
 
-    for (const auto &v : *it_vector) {
-        if (!v.is_number()) [[unlikely]] {
-            set_error(out, "All elements in 'vector' must be numeric.");
+        if (!item.is_object()) [[unlikely]] {
+            set_error(out, "Each item in 'data' must be an object.");
             return;
         }
-        vector_data.push_back(v.get<float>());
+
+        // Проверка extra (опциональное поле)
+        json extra_data = nullptr;
+        
+        if (auto it_extra = item.find("extra"); it_extra != item.end()) {
+            results.push_back(json{{"extra", *it_extra}});
+        } else {
+            results.push_back(json{});
+        }
+
+        auto it_vector = item.find("vector");
+        if (it_vector == item.end() || !it_vector->is_array() || it_vector->empty()) [[unlikely]] {
+            set_error(out, "Missing or invalid 'vector' key. Must be a non-empty float array.");
+            return;
+        }
+        if (it_vector->size() != meta->dim) [[unlikely]] {
+            set_error(out, "Demention of vector must mutch to the Data Base Demention.");
+            return;
+        }
+
+        std::vector<float> vector_data;
+        vector_data.reserve(meta->dim);
+        
+        std::cout << "vector:" << std::endl;
+        for (const auto &v : *it_vector) {
+            if (!v.is_number()) [[unlikely]] {
+                set_error(out, "All elements in 'vector' must be numeric.");
+                return;
+            }
+            std::cout << " " << v.get<float>();
+            vector_data.push_back(v.get<float>());
+        }
+        std::cout << std::endl;
+
+        vectors.emplace_back(std::move(vector_data));
+        
+
+        std::cout << "item: " << item.dump() << std::endl;
     }
 
-    // Проверка extra (опциональное поле)
-    json extra_data = nullptr;
-    auto it_extra = first_item.find("extra");
-    if (it_extra != first_item.end()) {
-        extra_data = *it_extra; // сохраняем extra как есть
-    }
 
-    // Отладочный вывод
+
     std::cout << "db_name: " << db_name << std::endl;
     std::cout << "top_k: " << top_k << std::endl;
-    std::cout << "vector size: " << vector_data.size() << std::endl;
-    if (!extra_data.is_null()) {
-        std::cout << "extra data provided." << std::endl;
-    } else {
-        std::cout << "no extra data provided." << std::endl;
-    }
+    // std::cout << "vector size: " << vector_data.size() << std::endl;
 
-    // Здесь далее будет логика поиска векторов и формирования ответа.
-    // Пока просто возвращаем обратно полученные данные для теста:
-    json response;
-    response["db_name"] = db_name;
-    response["top_k"] = top_k;
-    response["vector"] = vector_data;
-    if (!extra_data.is_null()) {
-        response["extra"] = extra_data;
-    }
+    // if (const char* err = _db->search_vec(meta, vectors, top_k); err != nullptr) [[unlikely]] {
+    //     set_error(out, err);
+    //     return;
+    // }
 
-    out.setStr(response.dump());
+    out.setStr(json({{"results", results}}).dump(_opts.json_indent()));
 }
