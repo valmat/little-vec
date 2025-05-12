@@ -69,43 +69,60 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
             return;
         }
 
+        if (it_vector->empty()) [[unlikely]] {
+            set_error(out, "'vector' must not be empty.");
+            return;
+        }        
+
         // XXX TODO: проверять размерность
-        std::vector<float> vector_data;
+        std::vector<char> vector_serialized;
+        vector_serialized.resize(serialize_vec_bytes_len(it_vector->size()));
+        auto vector_ser_it = vector_serialized.data();
         for (const auto& val : *it_vector) {
             if (!val.is_number()) [[unlikely]] {
                 set_error(out, "All elements of 'vector' must be numeric.");
                 return;
             }
-            vector_data.push_back(val.get<float>());
-        }
+            // vector_data.push_back(val.get<float>());
+            float fval = val.get<float>();
 
-        if (vector_data.empty()) [[unlikely]] {
-            set_error(out, "'vector' must not be empty.");
-            return;
-        }
+            
+            vector_ser_it = serialize_vec(&fval, 1, vector_ser_it);
+
+        }        
+
+        // if (vector_data.empty()) [[unlikely]] {
+        //     set_error(out, "'vector' must not be empty.");
+        //     return;
+        // }
 
         
 
         // Dbg
+        // std::cout << "vector_data: " << std::endl;
+        // for (const auto& val : vector_data) {
+        //     std::cout << " " << val;
+        // }
+        // std::cout << std::endl;
+
+        // std::vector<char> serialized;
+        // serialized.resize(vector_data.size() * 4);
+        // serialize_vec(vector_data.data(), vector_data.size(), serialized.data());
+
+        std::vector<float> vector_data;
+        vector_data.resize(it_vector->size());
+
+        deserialize_vec(vector_serialized.data(), vector_data.size(), vector_data.data());
+
+
         std::cout << "vector_data: " << std::endl;
         for (const auto& val : vector_data) {
             std::cout << " " << val;
         }
         std::cout << std::endl;
 
-        std::vector<char> serialized;
-        serialized.resize(vector_data.size() * 4);
-        serialize_vec(vector_data.data(), vector_data.size(), serialized.data());
-        deserialize_vec(serialized.data(), vector_data.size(), vector_data.data());
-
-        std::cout << "vector_data: " << std::endl;
-        for (const auto& val : vector_data) {
-            std::cout << " " << val;
-        }
-        std::cout << std::endl;
 
 
-        
 
 
         // Поле "payload" опционально, если есть - проверим, что это объект

@@ -22,6 +22,12 @@ size_t serialize_vec_bytes_len(size_t vec_size) noexcept
     return vec_size * sizeof(T);
 }
 
+template<typename T>
+char* serialize_val(T in_val, char* out_data) noexcept
+{
+    return serialize_vec(&in_val, 1, out_data);
+}
+
 
 // Явное инстанцирование шаблонов для float и double
 template char* serialize_vec<float>(const float*, size_t, char*) noexcept;
@@ -32,3 +38,7 @@ template double* deserialize_vec<double>(const char*, size_t, double*) noexcept;
 
 template size_t serialize_vec_bytes_len<float>(size_t in_size) noexcept;
 template size_t serialize_vec_bytes_len<double>(size_t in_size) noexcept;
+
+
+template char* serialize_val<float>(float in_val, char* out_data) noexcept;
+template char* serialize_val<double>(double in_val, char* out_data) noexcept;
