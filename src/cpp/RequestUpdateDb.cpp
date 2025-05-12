@@ -10,7 +10,7 @@ using json = nlohmann::json;
 
 void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    if(!in.isPost() || in.isEmpty()) {
+    if (!in.isPost() || in.isEmpty()) [[unlikely]] {
         out.setCode(422);
         return;
     }
@@ -22,20 +22,20 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     int dist_index = DistFun::default_index;
     {
         json j = json::parse(body, nullptr, false);
-        if (j.is_discarded() || !j.is_object()) {
+        if (j.is_discarded() || !j.is_object()) [[unlikely]] {
             set_error(out, "Invalid JSON.");
             return;
         }
 
         auto it_name = j.find("name");
-        if (it_name == j.end() || !it_name->is_string()) {
+        if (it_name == j.end() || !it_name->is_string()) [[unlikely]] {
             set_error(out, "Missing or invalid 'name' key.");
             return;
         }
         db_name = it_name->get<std::string>();
 
         meta = _db->get_meta(db_name);
-        if( !meta.has_value() ) {
+        if( !meta.has_value() ) [[unlikely]] {
             set_error(out, "Data base doesn't exist.");
             return;
         }
@@ -53,11 +53,11 @@ void RequestUpdateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         }        
     }
 
-    if (dist_index == 0) {
+    if (dist_index == 0) [[unlikely]] {
         set_error(out, "Invalid 'dist' value. Unsupported distance function.");
         return;
     }
-    if (db_name.empty()) {
+    if (db_name.empty()) [[unlikely]] {
         set_error(out, "DB name mast not be empty.");
         return;
     }    

@@ -10,7 +10,7 @@ using json = nlohmann::json;
 
 void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    if(!in.isPost() || in.isEmpty()) {
+    if (!in.isPost() || in.isEmpty()) [[unlikely]] {
         out.setCode(422);
         return;
     }
@@ -22,20 +22,20 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
 
     {
         json j = json::parse(body, nullptr, false);
-        if (j.is_discarded() || !j.is_object()) {
+        if (j.is_discarded() || !j.is_object()) [[unlikely]] {
             set_error(out, "Invalid JSON.");
             return;
         }
 
         auto it_name = j.find("name");
-        if (it_name == j.end() || !it_name->is_string()) {
+        if (it_name == j.end() || !it_name->is_string()) [[unlikely]] {
             set_error(out, "Missing or invalid 'name' key.");
             return;
         }
         db_name = it_name->get<std::string>();
 
         auto it_dim = j.find("dim");
-        if (it_dim == j.end() || !it_dim->is_number_integer()) {
+        if (it_dim == j.end() || !it_dim->is_number_integer()) [[unlikely]] {
             set_error(out, "Missing or invalid 'dim' key.");
             return;
         }
@@ -52,15 +52,15 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         }        
     }
 
-    if (db_dim <= 0) {
+    if (db_dim == 0) [[unlikely]] {
         set_error(out, "Invalid 'dim' value.");
         return;
     }
-    if (dist_index == 0) {
+    if (dist_index == 0) [[unlikely]] {
         set_error(out, "Invalid 'dist' value. Unsupported distance function");
         return;
     }
-    if (db_name.empty()) {
+    if (db_name.empty()) [[unlikely]] {
         set_error(out, "DB name must not be empty");
         return;
     }    
@@ -74,5 +74,4 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         return;
     }
     out.setStr(R"({"success": true})");    
-
 }

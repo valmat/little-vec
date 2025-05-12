@@ -9,7 +9,7 @@ using json = nlohmann::json;
 
 void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    if(!in.isPost() || in.isEmpty()) {
+    if (!in.isPost() || in.isEmpty()) [[unlikely]] {
         out.setCode(422);
         return;
     }
@@ -20,20 +20,20 @@ void RequestDeleteDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
     std::string db_name;
     {
         json j = json::parse(body, nullptr, false);
-        if (j.is_discarded() || !j.is_object()) {
+        if (j.is_discarded() || !j.is_object()) [[unlikely]] {
             set_error(out, "Invalid JSON.");
             return;
         }
 
         auto it_name = j.find("name");
-        if (it_name == j.end() || !it_name->is_string()) {
+        if (it_name == j.end() || !it_name->is_string()) [[unlikely]] {
             set_error(out, "Missing or invalid 'name' key.");
             return;
         }
         db_name = it_name->get<std::string>();
     }
 
-    if (db_name.empty()) {
+    if (db_name.empty()) [[unlikely]] {
         set_error(out, "DB name must not be empty");
         return;
     }

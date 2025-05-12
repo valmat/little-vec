@@ -10,7 +10,7 @@ using json = nlohmann::json;
 
 void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    if (!in.isPost() || in.isEmpty()) {
+    if (!in.isPost() || in.isEmpty()) [[unlikely]] {
         out.setCode(422);
         return;
     }
@@ -19,52 +19,52 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
     std::cout << body << std::endl;
 
     json j = json::parse(body, nullptr, false);
-    if (j.is_discarded() || !j.is_object()) {
+    if (j.is_discarded() || !j.is_object()) [[unlikely]] {
         set_error(out, "Invalid JSON.");
         return;
     }
 
     // Проверка db_name
     auto it_db_name = j.find("db_name");
-    if (it_db_name == j.end() || !it_db_name->is_string()) {
+    if (it_db_name == j.end() || !it_db_name->is_string()) [[unlikely]] {
         set_error(out, "Missing or invalid 'db_name' key.");
         return;
     }
     std::string db_name = it_db_name->get<std::string>();
-    if (db_name.empty()) {
+    if (db_name.empty()) [[unlikely]] {
         set_error(out, "'db_name' must not be empty.");
         return;
     }
 
     // Проверка top_k
     auto it_top_k = j.find("top_k");
-    if (it_top_k == j.end() || !it_top_k->is_number_integer()) {
+    if (it_top_k == j.end() || !it_top_k->is_number_integer()) [[unlikely]] {
         set_error(out, "Missing or invalid 'top_k' key.");
         return;
     }
     int top_k = it_top_k->get<int>();
-    if (top_k <= 0) {
+    if (top_k <= 0) [[unlikely]] {
         set_error(out, "'top_k' must be greater than 0.");
         return;
     }
 
     // Проверка data
     auto it_data = j.find("data");
-    if (it_data == j.end() || !it_data->is_array() || it_data->empty()) {
+    if (it_data == j.end() || !it_data->is_array() || it_data->empty()) [[unlikely]] {
         set_error(out, "Missing or invalid 'data' key. Must be a non-empty array.");
         return;
     }
 
     // Парсим первый элемент массива data
     auto &first_item = it_data->at(0);
-    if (!first_item.is_object()) {
+    if (!first_item.is_object()) [[unlikely]] {
         set_error(out, "Each item in 'data' must be an object.");
         return;
     }
 
     // Проверка vector
     auto it_vector = first_item.find("vector");
-    if (it_vector == first_item.end() || !it_vector->is_array() || it_vector->empty()) {
+    if (it_vector == first_item.end() || !it_vector->is_array() || it_vector->empty()) [[unlikely]] {
         set_error(out, "Missing or invalid 'vector' key. Must be a non-empty array.");
         return;
     }
@@ -73,7 +73,7 @@ void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out)
     vector_data.reserve(it_vector->size());
 
     for (const auto &v : *it_vector) {
-        if (!v.is_number()) {
+        if (!v.is_number()) [[unlikely]] {
             set_error(out, "All elements in 'vector' must be numeric.");
             return;
         }

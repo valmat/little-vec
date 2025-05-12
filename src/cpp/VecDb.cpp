@@ -16,16 +16,16 @@ VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
 
 const char* VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_index) noexcept
 {
-    if ( db_dim > _opts.max_dim() ) {
+    if ( db_dim > _opts.max_dim() ) [[unlikely]] {
         return "The maximum dimension size has been exceeded.";
     }
 
     auto key = merge_args(_opts.db_key(), db_name);
-    if( _db.keyExist(key) ) {
+    if ( _db.keyExist(key) ) [[unlikely]] {
         return "Data Base already exists.";
     }
 
-    if ( !_db.incr( _opts.db_counter_key() ) ) {
+    if ( !_db.incr( _opts.db_counter_key() ) ) [[unlikely]] {
         return "Internal RocksDB error: couldn't increment counter.";
     }
 
@@ -35,7 +35,7 @@ const char* VecDb::create_db(const std::string& db_name, uint db_dim, uint dist_
     // std::cout << "key: "  << key << std::endl;
     // std::cout << "val: "  << val << std::endl;
 
-    if (!_db.set(key, val)) {
+    if (!_db.set(key, val)) [[unlikely]] {
         return "Internal RocksDB error: couldn't set meta data.";
     }
 
@@ -84,25 +84,25 @@ const char* VecDb::delete_db(const std::string& db_name) noexcept
     
     // // Iterate over prefixed keys
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
-        if(iter->status().ok()) [[likely]] {
+        if (iter->status().ok()) [[likely]] {
             batch.del(iter->key());
         }
     }
     iter->Reset();
     for (iter->Seek(payload_prefix); iter->Valid() && iter->key().starts_with(payload_prefix); iter->Next()) {
-        if(iter->status().ok()) [[likely]] {
+        if (iter->status().ok()) [[likely]] {
             batch.del(iter->key());
         }
     }
 
     // Apply the delete-batch to the RocksDB
-    if(!_db.commit(batch)) [[unlikely]] {
+    if (!_db.commit(batch)) [[unlikely]] {
         return "Internal RocksDB error: couldn't commit delete batch.";
     }
 
     auto key = merge_args(_opts.db_key(), db_name);
 
-    if(!_db.del(key)) [[unlikely]] {
+    if (!_db.del(key)) [[unlikely]] {
         return "Internal RocksDB error: couldn't delete meta data.";
     }
 
@@ -114,7 +114,7 @@ std::optional<DbMeta> VecDb::get_meta(std::string_view db_name) noexcept
 {
     auto key = merge_args(_opts.db_key(), db_name);
     std::string value;
-    if (!_db.keyExist(key, value)) {
+    if (!_db.keyExist(key, value)) [[unlikely]] {
         return {};
     }
 
