@@ -88,10 +88,7 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
 
         
         // DBG
-        std::vector<float> vector_data;
-        vector_data.resize(it_vector->size());
-
-        deserialize_buf(vector_serialized.data(), vector_data.size(), vector_data.data());
+        std::vector<float> vector_data = deserialize_to_vec(vector_serialized.data(), it_vector->size());
         std::cout << "vector_data: " << std::endl;
         for (const auto& val : vector_data) {
             std::cout << " " << val;
