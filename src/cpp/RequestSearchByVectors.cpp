@@ -1,14 +1,14 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "RequestSearchVectors.h"
+#include "RequestSearchByVectors.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
-void RequestSearchVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
+void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
     if (!in.isPost() || in.isEmpty()) [[unlikely]] {
         out.setCode(422);

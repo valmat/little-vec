@@ -6,17 +6,17 @@
 
 using namespace RocksServer;
 
-class RequestSearchVectors final : public RequestBase<ProtocolInPost, ProtocolOut>
+class RequestSearchByVectors final : public RequestBase<ProtocolInPost, ProtocolOut>
 {
 public:
-    RequestSearchVectors(const VecDbOpts& opts, std::shared_ptr<VecDb> db) noexcept : 
+    RequestSearchByVectors(const VecDbOpts& opts, std::shared_ptr<VecDb> db) noexcept : 
         _opts(opts),
         _db(db)
     {}
 
     virtual void run(const ProtocolInPost &in, const ProtocolOut &out) noexcept final;
 
-    virtual ~RequestSearchVectors() = default;
+    virtual ~RequestSearchByVectors() = default;
 private:
 
     VecDbOpts _opts;
