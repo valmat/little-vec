@@ -1,4 +1,5 @@
 #include "VecDb.h"
+#include "utils.h"
 #include "dist_fun.h"
 #include "merge_args.h"
 
@@ -240,24 +241,19 @@ const char* VecDb::search_vec(
 
     auto dist_func = DistFun::get_func(meta->dist);
     size_t dim = meta->dim;
+    std::vector<float> stored_vec;
+    stored_vec.resize(dim);
+    float* data = stored_vec.data();
+
     
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
         if (iter->status().ok()) [[likely]] {
+            deserialize_buf(iter->value().data(), dim, data);
+            float dist = dist_func(vector.data(), data, dim);
 
             std::cout << "key: " << iter->key().ToStringView() << std::endl;
-            
-
-            std::cout << "reinterpret_cast<std::uintptr_t>(iter->value().data()): " << ((size_t)reinterpret_cast<std::uintptr_t>(iter->value().data())) << std::endl << std::endl;
-            std::cout << "alignof(float): " << ((size_t)alignof(float)) << std::endl << std::endl;
-
-            assert(reinterpret_cast<std::uintptr_t>(iter->value().data()) % alignof(float) == 0);
-            assert(iter->value().size() % sizeof(float) == 0);
-            const float* value = reinterpret_cast<const float*>(iter->value().data());
-            float dist = dist_func(vector.data(), value, dim);
-
-            std::cout << "dist: " << dist << std::endl << std::endl;
-
+            std::cout << "dist: " << dist << std::endl << std::endl << std::endl;
         }
     }
 
