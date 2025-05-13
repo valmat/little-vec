@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <string>
 #include <optional>
 #include <vector>
 #include <rocksserver/api.h>

@@ -1,3 +1,7 @@
+#include <queue>
+#include <utility>
+#include <algorithm>
+
 #include "VecDb.h"
 #include "utils.h"
 #include "dist_fun.h"
@@ -232,6 +236,18 @@ const char* VecDb::del_vec(
 }
 
 
+struct SearchResult final
+{
+    std::string key;
+    float distance;
+
+    // Для priority_queue нужен оператор сравнения
+    bool operator<(const SearchResult& other) const noexcept
+    {
+        return distance < other.distance;
+    }
+};
+
 const char* VecDb::search_vec(
     std::optional<DbMeta> meta,
     const std::vector<float>& vector, 
@@ -241,12 +257,24 @@ const char* VecDb::search_vec(
 
     auto dist_func = DistFun::get_func(meta->dist);
     size_t dim = meta->dim;
-    std::vector<float> stored_vec;
-    stored_vec.resize(dim);
+
+    std::vector<float> stored_vec(dim);
     float* data = stored_vec.data();
 
-    
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
+
+    std::vector<SearchResult> heap_container;
+    heap_container.reserve(top_k);
+    for (size_t i = 0; i < top_k; ++i) {
+        heap_container.emplace_back(SearchResult{{}, 1000000});
+    }
+
+    // Создаём priority_queue на основе заранее выделенного вектора
+    std::priority_queue<SearchResult, std::vector<SearchResult>> max_heap(
+        std::less<SearchResult>(), std::move(heap_container)
+    );
+
+
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
         if (iter->status().ok()) [[likely]] {
             deserialize_buf(iter->value().data(), dim, data);
@@ -254,8 +282,29 @@ const char* VecDb::search_vec(
 
             std::cout << "key: " << iter->key().ToStringView() << std::endl;
             std::cout << "dist: " << dist << std::endl << std::endl << std::endl;
+
+            if (dist < max_heap.top().distance) {
+                // Если текущий элемент ближе, заменяем самый дальний
+                max_heap.pop();
+                max_heap.emplace(SearchResult{iter->key().ToString(), dist});
+            }
         }
     }
+
+    // Переносим результаты из кучи в вектор
+    std::vector<SearchResult> results;
+    results.reserve(max_heap.size());
+    while (!max_heap.empty()) {
+        results.push_back(std::move(max_heap.top()));
+        max_heap.pop();
+    }
+
+    // Переворачиваем, чтобы получить элементы от ближайшего к дальнему
+    std::reverse(results.begin(), results.end());
+
+    // return results;
+
+
 
     return nullptr;
 }
