@@ -4,9 +4,26 @@
 #include "RequestSearchByVector.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
+#include "units.h"
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+static
+void to_json(json& j, const SearchData& data)
+{
+    j = json{
+        {"id", data.id},
+        {"distance", data.distance}
+    };
+
+    if (!data.payload.empty()) {
+        json js_payload = json::parse(data.payload, nullptr, false);
+        if (!js_payload.is_discarded()) [[likely]] {
+            j["payload"] = js_payload;
+        }
+    }
+}
 
 void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
@@ -73,11 +90,7 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
     std::cout << "top_k: " << top_k << std::endl;
     std::cout << "vector size: " << vector.size() << std::endl;
 
-    if (const char* err = _db->search_vec(meta, vector, top_k); err != nullptr) [[unlikely]] {
-        set_error(out, err);
-        return;
-    }
+    json results = _db->search_vec(meta, vector, top_k);
 
-    // out.setStr(json({{"nearest", nearest}}).dump(_opts.json_indent()));
-    out.setStr("ok");
+    out.setStr(results.dump(_opts.json_indent()));
 }

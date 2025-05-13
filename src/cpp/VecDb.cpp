@@ -249,7 +249,47 @@ struct SearchResult final
     }
 };
 
-const char* VecDb::search_vec(
+static
+std::string_view receive_id(std::string_view str, char delim = ':', int delim_count = 2) noexcept
+{
+    size_t pos = 0;
+    int count = 0;
+
+    while (count < delim_count) {
+        pos = str.find(delim, pos);
+        if (pos == std::string_view::npos) {
+            return {};
+        }
+        ++pos;
+        ++count;
+    }
+
+    return str.substr(pos);
+}
+
+static
+void turn_to_id(std::string &str, char delim = ':', int delim_count = 2) noexcept
+{
+    size_t pos = 0;
+    int count = 0;
+
+    // Ищем позицию после нужного количества разделителей
+    while (count < delim_count) {
+        pos = str.find(delim, pos);
+        if (pos == std::string::npos) {
+            // Если разделителей меньше, чем ожидалось, очищаем строку
+            str.clear();
+            return;
+        }
+        ++pos; // переходим за найденный разделитель
+        ++count;
+    }
+
+    // Удаляем символы слева до найденной позиции
+    str.erase(0, pos);
+}
+
+std::vector<SearchData> VecDb::search_vec(
     std::optional<DbMeta> meta,
     const std::vector<float>& vector, 
     size_t top_k) noexcept
@@ -275,15 +315,11 @@ const char* VecDb::search_vec(
         std::less<SearchResult>(), std::move(heap_container)
     );
 
-
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
         if (iter->status().ok()) [[likely]] {
             deserialize_buf(iter->value().data(), dim, data);
             float dist = dist_func(vector.data(), data, dim);
-
-            std::cout << "key: " << iter->key().ToStringView() << std::endl;
-            std::cout << "dist: " << dist << std::endl << std::endl << std::endl;
-
+            
             if (dist < max_heap.top().distance) {
                 // Извлекаем верхний элемент
                 SearchResult top_element = std::move(const_cast<SearchResult&>(max_heap.top()));
@@ -304,21 +340,35 @@ const char* VecDb::search_vec(
     }
 
     // Переносим результаты из кучи в вектор
-    std::vector<SearchResult> results;
-    results.reserve(max_heap.size());
+    std::vector<SearchData> results;
+    // std::vector<SearchResult> results;
+    results.reserve(top_k);
     while (!max_heap.empty()) {
-        results.push_back(std::move(max_heap.top()));
+        auto top = std::move(const_cast<SearchResult&>(max_heap.top()));
         max_heap.pop();
+
+
+        std::cout << "key: " << top.key << std::endl;
+        turn_to_id(top.key);
+        std::cout << "id: " << top.key << std::endl;
+        std::cout << "distance: " << top.distance << std::endl;
+
+
+        auto payload_key = merge_args(_opts.payload_key(), meta->index, top.key);
+        
+        if(!top.key.empty()) [[unlikely]] {
+            results.emplace_back(SearchData{
+                std::move(top.key),   // id
+                top.distance,         // distance
+                _db.get(payload_key)  // payload
+            });
+        }
     }
 
     // Переворачиваем, чтобы получить элементы от ближайшего к дальнему
     std::reverse(results.begin(), results.end());
 
-    // return results;
-
-
-
-    return nullptr;
+    return results;
 }
 
 const char* VecDb::search_batch_vec(

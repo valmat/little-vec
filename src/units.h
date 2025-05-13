@@ -11,3 +11,9 @@ struct DbMeta final
     static std::optional<DbMeta> deserialize(std::string_view data) noexcept;
 };
 
+struct SearchData final
+{
+    std::string id;
+    float distance;
+    std::string payload;
+};
