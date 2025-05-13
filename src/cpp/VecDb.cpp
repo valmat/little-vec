@@ -233,6 +233,16 @@ const char* VecDb::del_vec(
 
 const char* VecDb::search_vec(
     std::optional<DbMeta> meta,
+    const std::vector<float>& vectors, 
+    size_t top_k) noexcept
+{
+    // TODO
+
+    return nullptr;
+}
+
+const char* VecDb::search_batch_vec(
+    std::optional<DbMeta> meta,
     const std::vector<std::vector<float>>& vectors, 
     size_t top_k) noexcept
 {
@@ -245,6 +255,8 @@ const char* VecDb::search_vec(
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
         if (iter->status().ok()) [[likely]] {
+
+            // TODO
             
             std::cout << "key: " << iter->key().ToStringView() << std::endl;
             // std::cout << "value: " << iter->value().ToStringView() << std::endl << std::endl;

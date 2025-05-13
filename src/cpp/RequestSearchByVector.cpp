@@ -59,21 +59,21 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
         return;
     }
 
-    std::vector<float> vector_data;
-    vector_data.reserve(meta->dim);
+    std::vector<float> vector;
+    vector.reserve(meta->dim);
     for (const auto &v : *it_vector) {
         if (!v.is_number()) [[unlikely]] {
             set_error(out, "All elements in 'vector' must be numeric.");
             return;
         }
-        vector_data.push_back(v.get<float>());
+        vector.push_back(v.get<float>());
     }
 
     std::cout << "db_name: " << db_name << std::endl;
     std::cout << "top_k: " << top_k << std::endl;
-    // std::cout << "vector size: " << vector_data.size() << std::endl;
+    // std::cout << "vector size: " << vector.size() << std::endl;
 
-    // if (const char* err = _db->search_vec(meta, vectors, top_k); err != nullptr) [[unlikely]] {
+    // if (const char* err = _db->search_vec(meta, vector, top_k); err != nullptr) [[unlikely]] {
     //     set_error(out, err);
     //     return;
     // }
