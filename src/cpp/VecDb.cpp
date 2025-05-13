@@ -233,10 +233,33 @@ const char* VecDb::del_vec(
 
 const char* VecDb::search_vec(
     std::optional<DbMeta> meta,
-    const std::vector<float>& vectors, 
+    const std::vector<float>& vector, 
     size_t top_k) noexcept
 {
-    // TODO
+    auto iter(_db.newIter());
+
+    auto dist_func = DistFun::get_func(meta->dist);
+    size_t dim = meta->dim;
+    
+    auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
+    for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
+        if (iter->status().ok()) [[likely]] {
+
+            std::cout << "key: " << iter->key().ToStringView() << std::endl;
+            
+
+            std::cout << "reinterpret_cast<std::uintptr_t>(iter->value().data()): " << ((size_t)reinterpret_cast<std::uintptr_t>(iter->value().data())) << std::endl << std::endl;
+            std::cout << "alignof(float): " << ((size_t)alignof(float)) << std::endl << std::endl;
+
+            assert(reinterpret_cast<std::uintptr_t>(iter->value().data()) % alignof(float) == 0);
+            assert(iter->value().size() % sizeof(float) == 0);
+            const float* value = reinterpret_cast<const float*>(iter->value().data());
+            float dist = dist_func(vector.data(), value, dim);
+
+            std::cout << "dist: " << dist << std::endl << std::endl;
+
+        }
+    }
 
     return nullptr;
 }

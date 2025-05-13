@@ -34,14 +34,13 @@ public:
         std::optional<DbMeta> meta,
         const std::vector<std::string_view>& ids) noexcept;
 
+    const char* search_vec(
+        std::optional<DbMeta> meta,
+        const std::vector<float>& vector, 
+        size_t top_k) noexcept;
 
     const char* search_batch_vec(
         std::optional<DbMeta> meta,
         const std::vector<std::vector<float>>& vectors, 
-        size_t top_k) noexcept;
-
-    const char* search_vec(
-        std::optional<DbMeta> meta,
-        const std::vector<float>& vectors, 
         size_t top_k) noexcept;
 };

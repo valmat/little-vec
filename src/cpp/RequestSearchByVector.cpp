@@ -71,12 +71,12 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
 
     std::cout << "db_name: " << db_name << std::endl;
     std::cout << "top_k: " << top_k << std::endl;
-    // std::cout << "vector size: " << vector.size() << std::endl;
+    std::cout << "vector size: " << vector.size() << std::endl;
 
-    // if (const char* err = _db->search_vec(meta, vector, top_k); err != nullptr) [[unlikely]] {
-    //     set_error(out, err);
-    //     return;
-    // }
+    if (const char* err = _db->search_vec(meta, vector, top_k); err != nullptr) [[unlikely]] {
+        set_error(out, err);
+        return;
+    }
 
     // out.setStr(json({{"nearest", nearest}}).dump(_opts.json_indent()));
     out.setStr("ok");
