@@ -1,6 +1,7 @@
 #include <queue>
 #include <utility>
 #include <algorithm>
+#include <limits>
 
 #include "VecDb.h"
 #include "utils.h"
@@ -266,7 +267,7 @@ const char* VecDb::search_vec(
     std::vector<SearchResult> heap_container;
     heap_container.reserve(top_k);
     for (size_t i = 0; i < top_k; ++i) {
-        heap_container.emplace_back(SearchResult{{}, 1000000});
+        heap_container.emplace_back(SearchResult{{}, std::numeric_limits<float>::max()});
     }
 
     // Создаём priority_queue на основе заранее выделенного вектора
@@ -284,9 +285,20 @@ const char* VecDb::search_vec(
             std::cout << "dist: " << dist << std::endl << std::endl << std::endl;
 
             if (dist < max_heap.top().distance) {
-                // Если текущий элемент ближе, заменяем самый дальний
+                // Извлекаем верхний элемент
+                SearchResult top_element = std::move(const_cast<SearchResult&>(max_heap.top()));
                 max_heap.pop();
-                max_heap.emplace(SearchResult{iter->key().ToString(), dist});
+
+                std::string_view key_view = iter->key().ToStringView();
+
+                if (top_element.key.size() != key_view.size()) [[unlikely]] {
+                    top_element.key.resize(key_view.size());
+                }
+                std::copy(key_view.begin(), key_view.end(), top_element.key.begin());                
+                top_element.distance = dist;
+
+                // Вставляем обратно в кучу
+                max_heap.emplace(std::move(top_element));
             }
         }
     }
