@@ -292,16 +292,12 @@ public:
     {
         if (distance < _top_dist) [[unlikely]]  {
 
-            if (_container[_top_index].id.size() != key.size()) [[unlikely]] {
-                _container[_top_index].id.resize(key.size());
-            }
-            std::copy(key.begin(), key.end(), _container[_top_index].id.begin());                
+            _container[_top_index].id.assign(key.begin(), key.end());
             _container[_top_index].distance = distance;
 
             // finding new _top_dist and _top_index
             _top_dist = _container[0].distance;
             _top_index = 0;
-
             for (size_t i = 1; i < _container.size(); ++i) {
                 if (_container[i].distance > _top_dist) {
                     _top_dist = _container[i].distance;
@@ -315,6 +311,26 @@ public:
     {
         return _container;
     }
+    std::vector<SearchResult> container() && noexcept
+    {
+        return std::move(_container);
+    }
+
+    void shrink() noexcept
+    {
+        auto new_end = std::remove_if(_container.begin(), _container.end(), [](const SearchResult& item) {
+            return item.id.empty();
+        });
+        _container.erase(new_end, _container.end());
+    }
+
+    void sort() noexcept
+    {
+        std::sort(_container.begin(), _container.end(), [](const SearchResult& a, const SearchResult& b) {
+            return a.distance < b.distance;
+        });    
+    }
+
 };
 
 std::vector<SearchResult> VecDb::search_vec(
@@ -337,7 +353,6 @@ std::vector<SearchResult> VecDb::search_vec(
         if (iter->status().ok()) [[likely]] {
             deserialize_buf(iter->value().data(), dim, data);
             float dist = dist_func(vector.data(), data, dim);
-
             // const float* value = reinterpret_cast<const float*>(iter->value().data());
             // float dist = dist_func(vector.data(), value, dim);
             
@@ -345,28 +360,16 @@ std::vector<SearchResult> VecDb::search_vec(
         }
     }
 
-    std::vector<SearchResult> results;
-    results.reserve(top_k);
+    max_heap.shrink();
+    max_heap.sort();
 
-    for (auto& item: max_heap.container()) {
-        if(!item.id.empty()) [[likely]] {
+    for (auto& item : max_heap.container()) {
+        turn_to_id(item.id);
+        auto payload_key = merge_args(_opts.payload_key(), meta->index, item.id);
+        item.payload = _db.get(payload_key);
+    }    
 
-            turn_to_id(item.id);
-            auto payload_key = merge_args(_opts.payload_key(), meta->index, item.id);
-
-            results.emplace_back(SearchResult{
-                std::move(item.id),   // id
-                item.distance,        // distance
-                _db.get(payload_key)  // payload
-            });
-        }
-    }
-
-    std::sort(results.begin(), results.end(), [](const SearchResult& a, const SearchResult& b) {
-        return a.distance < b.distance;
-    });
-
-    return results;
+    return std::move(max_heap).container();
 }
 
 const char* VecDb::search_batch_vec(
@@ -374,22 +377,16 @@ const char* VecDb::search_batch_vec(
     const std::vector<std::vector<float>>& vectors, 
     size_t top_k) noexcept
 {
-
-    // auto payload_prefix = merge_args(_opts.payload_key(), meta->index, nullptr);
-
-
     auto iter(_db.newIter());
     
+    // TODO
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
         if (iter->status().ok()) [[likely]] {
-
             // TODO
-            
-            std::cout << "key: " << iter->key().ToStringView() << std::endl;
-            // std::cout << "value: " << iter->value().ToStringView() << std::endl << std::endl;
         }
-    }    
+    }
+    // TODO
 
     return nullptr;
 }
