@@ -6,18 +6,13 @@
 #include "utils.h"
 #include "dist_fun.h"
 #include "merge_args.h"
-
+#include "MaxHeap.h"
+#include "MergedIterable.h"
 
 VecDb::VecDb(const VecDbOpts& opts, RocksDBWrapper& db) noexcept :
     _opts(opts),
     _db(db)
-{
-    std::cout << "VecDb::VecDb" << std::endl;
-
-    // std::cout << "_opts.db_key():"  << _opts.db_key() << std::endl;
-    // std::cout << "_opts.vec_key():" << std::move(_opts).vec_key() << std::endl;
-
-}
+{}
 
 const char* VecDb::create_db(std::string_view db_name, uint db_dim, uint dist_index) noexcept
 {
@@ -36,9 +31,6 @@ const char* VecDb::create_db(std::string_view db_name, uint db_dim, uint dist_in
 
     auto db_index = _db.get(_opts.db_counter_key());
     auto val = merge_args(db_dim, dist_index, db_index);
-
-    // std::cout << "key: "  << key << std::endl;
-    // std::cout << "val: "  << val << std::endl;
 
     if (!_db.set(key, val)) [[unlikely]] {
         return "Internal RocksDB error: couldn't set meta data.";
@@ -60,7 +52,7 @@ const char* VecDb::update_db(std::string_view db_name, std::optional<DbMeta> met
     if ( meta->dist == dist_index ) [[unlikely]] {
         return "Nothing changed.";
     }
-
+    
     meta->dist = dist_index;
 
     auto key = merge_args(_opts.db_key(), db_name);
@@ -146,79 +138,6 @@ const char* VecDb::set_vec(
     return nullptr;
 }
 
-
-class MergedIterable final
-{
-public:
-    MergedIterable(std::string_view prefix, uint index, const std::vector<std::string_view>& ids) noexcept
-        : _prefix(prefix), _index(index), _ids(ids) {}
-
-    class iterator final
-    {
-        std::string_view _prefix;
-        uint _index;
-        const std::vector<std::string_view>& _ids;
-        size_t _pos;
-
-    public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type = std::string;
-        using difference_type = std::ptrdiff_t;
-        using pointer = const std::string*;
-        using reference = const std::string&;
-
-        iterator(std::string_view prefix, uint index, const std::vector<std::string_view>& ids, size_t pos) noexcept : 
-            _prefix(prefix),
-            _index(index),
-            _ids(ids),
-            _pos(pos)
-        {}
-
-        value_type operator*() const noexcept
-        {
-            return merge_args(_prefix, _index, _ids[_pos]);
-        }
-
-        iterator& operator++() noexcept
-        {
-            ++_pos;
-            return *this;
-        }
-
-        iterator operator++(int) noexcept
-        {
-            iterator tmp = *this;
-            ++(*this);
-            return tmp;
-        }
-
-        bool operator==(const iterator& other) const noexcept
-        {
-            return _pos == other._pos && &_ids == &other._ids;
-        }
-
-        bool operator!=(const iterator& other) const noexcept
-        {
-            return !(*this == other);
-        }
-    };
-
-    iterator begin() const noexcept
-    {
-        return iterator(_prefix, _index, _ids, 0);
-    }
-
-    iterator end() const noexcept
-    {
-        return iterator(_prefix, _index, _ids, _ids.size());
-    }
-
-private:
-    std::string_view _prefix;
-    uint _index;
-    const std::vector<std::string_view>& _ids;
-};
-
 const char* VecDb::del_vec(
     std::optional<DbMeta> meta,
     const std::vector<std::string_view>& ids) noexcept
@@ -235,103 +154,27 @@ const char* VecDb::del_vec(
     return nullptr;
 }
 
-
-inline
-std::string_view receive_id(std::string_view str, char delim = ':', int delim_count = 2) noexcept
-{
-    size_t pos = 0;
-    int count = 0;
-
-    while (count < delim_count) {
-        pos = str.find(delim, pos);
-        if (pos == std::string_view::npos) {
-            return {};
-        }
-        ++pos;
-        ++count;
-    }
-
-    return str.substr(pos);
-}
-
 inline
 void turn_to_id(std::string &str, char delim = ':', int delim_count = 2) noexcept
 {
     size_t pos = 0;
     int count = 0;
 
-    // Ищем позицию после нужного количества разделителей
+    // Find the position after the needed number of delimiters
     while (count < delim_count) {
         pos = str.find(delim, pos);
         if (pos == std::string::npos) {
-            // Если разделителей меньше, чем ожидалось, очищаем строку
+            // If there are fewer delimiters than expected, clear the string
             str.clear();
             return;
         }
-        ++pos; // переходим за найденный разделитель
+        ++pos; // Move past the found delimiter
         ++count;
     }
 
-    // Удаляем символы слева до найденной позиции
+    // Remove all characters to the left of the found position
     str.erase(0, pos);
 }
-
-class MaxHeap final
-{
-    size_t _top_index = 0;
-    float _top_dist = std::numeric_limits<float>::max();
-    std::vector<SearchResult> _container;
-
-public:
-
-    MaxHeap(size_t top_k) noexcept :
-        _container(top_k)
-    {}
-
-    void update(float distance, std::string_view key) noexcept
-    {
-        if (distance < _top_dist) [[unlikely]]  {
-
-            _container[_top_index].id.assign(key.begin(), key.end());
-            _container[_top_index].distance = distance;
-
-            // finding new _top_dist and _top_index
-            _top_dist = _container[0].distance;
-            _top_index = 0;
-            for (size_t i = 1; i < _container.size(); ++i) {
-                if (_container[i].distance > _top_dist) {
-                    _top_dist = _container[i].distance;
-                    _top_index = i;
-                }
-            }
-        }
-    }
-
-    std::vector<SearchResult>& container() & noexcept
-    {
-        return _container;
-    }
-    std::vector<SearchResult> container() && noexcept
-    {
-        return std::move(_container);
-    }
-
-    void shrink() noexcept
-    {
-        auto new_end = std::remove_if(_container.begin(), _container.end(), [](const SearchResult& item) {
-            return item.id.empty();
-        });
-        _container.erase(new_end, _container.end());
-    }
-
-    void sort() noexcept
-    {
-        std::sort(_container.begin(), _container.end(), [](const SearchResult& a, const SearchResult& b) {
-            return a.distance < b.distance;
-        });    
-    }
-
-};
 
 std::vector<SearchResult> VecDb::search_vec(
     std::optional<DbMeta> meta,
@@ -383,7 +226,7 @@ std::vector<std::vector<SearchResult>> VecDb::search_batch_vec(
     size_t dim = meta->dim;
     size_t batch_size = vectors.size();
 
-    // Создаем по MaxHeap для каждого вектора из пакета
+    // Create a MaxHeap for each vector in the batch
     std::vector<MaxHeap> heaps;
     heaps.reserve(batch_size);
     for (size_t i = 0; i < batch_size; ++i) {
@@ -398,7 +241,7 @@ std::vector<std::vector<SearchResult>> VecDb::search_batch_vec(
         if (iter->status().ok()) [[likely]] {
             deserialize_buf(iter->value().data(), dim, data);
 
-            // Считаем расстояние до каждого вектора из пакета и обновляем соответствующие MaxHeap
+            // Calculate the distance to each vector in the batch and update the corresponding MaxHeap
             for (size_t i = 0; i < batch_size; ++i) {
                 float dist = dist_func(vectors[i].data(), data, dim);
                 heaps[i].update(dist, iter->key().ToStringView());
@@ -406,7 +249,7 @@ std::vector<std::vector<SearchResult>> VecDb::search_batch_vec(
         }
     }
 
-    // Подготовка результатов
+    // Prepare the results
     std::vector<std::vector<SearchResult>> results(batch_size);
     for (size_t i = 0; i < batch_size; ++i) {
         heaps[i].shrink();
