@@ -55,7 +55,7 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
         return;
     }
 
-    size_t top_k = _opts.top_k();
+    size_t top_k = _db->opts().top_k();
     auto it_top_k = j.find("top_k");
     if (it_top_k != j.end() && !it_top_k->is_number_integer()) [[unlikely]] {
         set_error(out, "Value of 'top_k' must be integer.");
@@ -108,14 +108,5 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
         {"nearest", _db->search_vec(meta, vector, top_k)}
     };
 
-    out.setStr(results.dump(_opts.json_indent()));
+    out.setStr(results.dump(_db->opts().json_indent()));
 }
-
-
-
-// {
-//     "db_name": "my_vectors",
-//     "vector": [0.1, 0.2, 0.3, ...],
-//     "top_k": <количество ближайших векторов в ответе, опционально>,
-//     "dist": "<метрика, опционально>"  // переопределяет dist из БД
-// }

@@ -38,7 +38,7 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
         return;
     }
 
-    size_t top_k = _opts.top_k();
+    size_t top_k = _db->opts().top_k();
     auto it_top_k = j.find("top_k");
     if (it_top_k != j.end() && !it_top_k->is_number_integer()) [[unlikely]] {
         set_error(out, "Value of 'top_k' must be integer.");
@@ -136,10 +136,10 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
     std::cout << "top_k: " << top_k << std::endl;
     // std::cout << "vector size: " << vector_data.size() << std::endl;
 
-    if (const char* err = _db->search_batch_vec(meta, vectors, top_k); err != nullptr) [[unlikely]] {
-        set_error(out, err);
-        return;
-    }
+    // if (const char* err = _db->search_batch_vec(meta, vectors, top_k); err != nullptr) [[unlikely]] {
+    //     set_error(out, err);
+    //     return;
+    // }
 
-    out.setStr(json({{"results", results}}).dump(_opts.json_indent()));
+    // out.setStr(json({{"results", results}}).dump(_db->opts().json_indent()));
 }

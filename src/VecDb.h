@@ -24,6 +24,8 @@ public:
 
     std::optional<DbMeta> get_meta(std::string_view db_name) noexcept;
 
+    const VecDbOpts& opts() const & noexcept {return _opts;}
+
 
     const char* set_vec(
         std::optional<DbMeta> meta,
@@ -40,7 +42,7 @@ public:
         const std::vector<float>& vector, 
         size_t top_k) noexcept;
 
-    const char* search_batch_vec(
+    std::vector<std::vector<SearchResult>> search_batch_vec(
         std::optional<DbMeta> meta,
         const std::vector<std::vector<float>>& vectors, 
         size_t top_k) noexcept;

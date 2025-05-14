@@ -9,8 +9,7 @@ using namespace RocksServer;
 class RequestSearchByVector final : public RequestBase<ProtocolInPost, ProtocolOut>
 {
 public:
-    RequestSearchByVector(const VecDbOpts& opts, std::shared_ptr<VecDb> db) noexcept : 
-        _opts(opts),
+    RequestSearchByVector(std::shared_ptr<VecDb> db) noexcept : 
         _db(db)
     {}
 
@@ -19,6 +18,5 @@ public:
     virtual ~RequestSearchByVector() = default;
 private:
 
-    VecDbOpts _opts;
     std::shared_ptr<VecDb> _db;
 };

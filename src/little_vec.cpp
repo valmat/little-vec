@@ -53,7 +53,7 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
         .bind("/vecdb/delete",         new RequestDeleteDb(vec_db))
         .bind("/vectors/set",          new RequestSetVectors(vec_db))
         .bind("/vectors/delete",       new RequestDelVectors(vec_db))
-        .bind("/vectors/search",       new RequestSearchByVector(opts, vec_db))
-        .bind("/vectors/batch_search", new RequestSearchByVectors(opts, vec_db))
+        .bind("/vectors/search",       new RequestSearchByVector(vec_db))
+        .bind("/vectors/batch_search", new RequestSearchByVectors(vec_db))
         ;
 }

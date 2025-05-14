@@ -372,7 +372,7 @@ std::vector<SearchResult> VecDb::search_vec(
     return std::move(max_heap).container();
 }
 
-const char* VecDb::search_batch_vec(
+std::vector<std::vector<SearchResult>> VecDb::search_batch_vec(
     std::optional<DbMeta> meta,
     const std::vector<std::vector<float>>& vectors, 
     size_t top_k) noexcept
@@ -388,5 +388,5 @@ const char* VecDb::search_batch_vec(
     }
     // TODO
 
-    return nullptr;
+    return {};
 }
