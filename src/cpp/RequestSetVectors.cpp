@@ -4,11 +4,11 @@
 #include "dist_fun.h"
 #include "utils_rocks.h"
 #include "utils.h"
-#include "req_utils.h"
+#include "req_validator.h"
 
 void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    auto parsed = RequestUtils::init_meta(in, out, _db.get());
+    auto parsed = ReqValidator::init_meta(in, out, _db.get());
     if (!parsed) [[unlikely]] return;
     auto [js, db_name, meta] = std::move(parsed.value());
 

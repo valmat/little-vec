@@ -3,15 +3,15 @@
 #include "RequestCreateDb.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
-#include "req_utils.h"
+#include "req_validator.h"
 
 void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    auto parsed = RequestUtils::init(in, out);
+    auto parsed = ReqValidator::init(in, out);
     if (!parsed) [[unlikely]] return;
     auto [js, db_name] = std::move(parsed.value());
 
-    uint db_dim = RequestUtils::dim(js, out);
+    uint db_dim = ReqValidator::dim(js, out);
     if (!db_dim) [[unlikely]] return;
 
     uint dist_index = DistFun::default_index;

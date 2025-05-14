@@ -4,15 +4,15 @@
 #include "RequestSearchByVectors.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
-#include "req_utils.h"
+#include "req_validator.h"
 
 void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    auto parsed = RequestUtils::init_meta(in, out, _db.get());
+    auto parsed = ReqValidator::init_meta(in, out, _db.get());
     if (!parsed) [[unlikely]] return;
     auto [js, db_name, meta] = std::move(parsed.value());
 
-    size_t top_k = RequestUtils::top_k_dist_vec(js, _db->opts(), meta.value(), out);
+    size_t top_k = ReqValidator::top_k_dist_vec(js, _db->opts(), meta.value(), out);
     if (!top_k) [[unlikely]] return;
     
     // Проверка data
@@ -32,7 +32,7 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
         }
 
         std::vector<float> vector_data;
-        if ( !RequestUtils::validate_vector(item , meta->dim, vector_data, out) ) [[unlikely]] {return;}
+        if ( !ReqValidator::validate_vector(item , meta->dim, vector_data, out) ) [[unlikely]] {return;}
 
         vectors.emplace_back(std::move(vector_data));
     }

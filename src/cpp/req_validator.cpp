@@ -1,10 +1,10 @@
-#include "req_utils.h"
 #include "utils.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
+#include "req_validator.h"
 
 
-std::optional<InitReqData> RequestUtils::init(const ProtocolInPost &in, const ProtocolOut &out) noexcept
+std::optional<InitReqData> ReqValidator::init(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
     if (!in.isPost() || in.isEmpty()) [[unlikely]] {
         out.setCode(422);
@@ -28,7 +28,7 @@ std::optional<InitReqData> RequestUtils::init(const ProtocolInPost &in, const Pr
     return InitReqData{ std::move(js), db_name };
 }
 
-std::optional<InitReqDataExt> RequestUtils::init_meta(const ProtocolInPost &in, const ProtocolOut &out, VecDb* db) noexcept
+std::optional<InitReqDataExt> ReqValidator::init_meta(const ProtocolInPost &in, const ProtocolOut &out, VecDb* db) noexcept
 {
     auto parsed = init(in, out);
     if (!parsed) [[unlikely]] return {};
@@ -43,7 +43,7 @@ std::optional<InitReqDataExt> RequestUtils::init_meta(const ProtocolInPost &in, 
     return InitReqDataExt{ std::move(js), db_name, meta };
 }
 
-size_t RequestUtils::top_k_dist_vec(const json& js, const VecDbOpts& opts, DbMeta& meta, const ProtocolOut &out) noexcept
+size_t ReqValidator::top_k_dist_vec(const json& js, const VecDbOpts& opts, DbMeta& meta, const ProtocolOut &out) noexcept
 {
     size_t top_k = opts.top_k();
     auto it_top_k = js.find("top_k");
@@ -74,7 +74,7 @@ size_t RequestUtils::top_k_dist_vec(const json& js, const VecDbOpts& opts, DbMet
     return top_k;
 }
 
-uint RequestUtils::dim(const json& js, const ProtocolOut &out) noexcept
+uint ReqValidator::dim(const json& js, const ProtocolOut &out) noexcept
 {
     auto it_dim = js.find("dim");
     if (it_dim == js.end() || !it_dim->is_number_integer()) [[unlikely]] {
@@ -89,7 +89,7 @@ uint RequestUtils::dim(const json& js, const ProtocolOut &out) noexcept
     return db_dim;
 }
 
-bool RequestUtils::validate_vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept
+bool ReqValidator::validate_vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept
 {
     auto it_vector = js.find("vector");
     if (!it_vector->is_array() || it_vector->size() != dim) [[unlikely]] {

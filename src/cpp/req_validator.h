@@ -23,7 +23,7 @@ struct InitReqDataExt final
     std::optional<DbMeta> meta;
 };
 
-struct RequestUtils final
+struct ReqValidator final
 {
     static std::optional<InitReqData> init(const ProtocolInPost &in, const ProtocolOut &out) noexcept;
     static std::optional<InitReqDataExt> init_meta(const ProtocolInPost &in, const ProtocolOut &out, VecDb* db) noexcept;
