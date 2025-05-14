@@ -8,6 +8,22 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+static
+void to_json(json& j, const SearchResult& data)
+{
+    j = json{
+        {"id", data.id},
+        {"distance", data.distance}
+    };
+
+    if (!data.payload.empty()) {
+        json js_payload = json::parse(data.payload, nullptr, false);
+        if (!js_payload.is_discarded()) [[likely]] {
+            j["payload"] = js_payload;
+        }
+    }
+}
+
 void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
     if (!in.isPost() || in.isEmpty()) [[unlikely]] {
@@ -15,7 +31,7 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
         return;
     }
 
-    const json j = json::parse(in.key().ToStringView(), nullptr, false);
+    json j = json::parse(in.key().ToStringView(), nullptr, false);
     if (j.is_discarded() || !j.is_object()) [[unlikely]] {
         set_error(out, "Invalid JSON.");
         return;
@@ -69,19 +85,6 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
         return;
     }
 
-    json results{};
-
-    // "results": [
-    //     {
-    //         "nearest": [
-    //             { "id": "123", "distance": 0.123, "payload": ... },
-    //             ...
-    //         ],
-    //         "extra": ... // если extra был передан в запросе
-    //     },
-    //     ...
-    // ]    
-
     std::vector<std::vector<float>> vectors;
     vectors.reserve(it_data->size());
     for (const auto& item : *it_data) {
@@ -89,15 +92,6 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
         if (!item.is_object()) [[unlikely]] {
             set_error(out, "Each item in 'data' must be an object.");
             return;
-        }
-
-        // Проверка extra (опциональное поле)
-        json extra_data = nullptr;
-        
-        if (auto it_extra = item.find("extra"); it_extra != item.end()) {
-            results.push_back(json{{"extra", *it_extra}});
-        } else {
-            results.push_back(json{});
         }
 
         auto it_vector = item.find("vector");
@@ -112,34 +106,31 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
 
         std::vector<float> vector_data;
         vector_data.reserve(meta->dim);
-        
-        std::cout << "vector:" << std::endl;
         for (const auto &v : *it_vector) {
             if (!v.is_number()) [[unlikely]] {
                 set_error(out, "All elements in 'vector' must be numeric.");
                 return;
             }
-            std::cout << " " << v.get<float>();
             vector_data.push_back(v.get<float>());
         }
-        std::cout << std::endl;
-
         vectors.emplace_back(std::move(vector_data));
-        
+    }
+    
+    std::vector<std::vector<SearchResult>> search_results = _db->search_batch_vec(meta, vectors, top_k);
+    
+    std::vector<json> results(it_data->size());
 
-        std::cout << "item: " << item.dump() << std::endl;
+    for (size_t i = 0; i < it_data->size(); ++i) {
+        
+        auto& src_item = (*it_data)[i];
+        json item{{"nearest", std::move(search_results[i])}};
+        
+        if (auto it_extra = src_item.find("extra"); it_extra != src_item.end()) {
+            item["extra"] = std::move(*it_extra);
+        }
+
+        results[i] = std::move(item);
     }
 
-
-
-    std::cout << "db_name: " << db_name << std::endl;
-    std::cout << "top_k: " << top_k << std::endl;
-    // std::cout << "vector size: " << vector_data.size() << std::endl;
-
-    // if (const char* err = _db->search_batch_vec(meta, vectors, top_k); err != nullptr) [[unlikely]] {
-    //     set_error(out, err);
-    //     return;
-    // }
-
-    // out.setStr(json({{"results", results}}).dump(_db->opts().json_indent()));
+    out.setStr(json({{"results", std::move(results)}}).dump(_db->opts().json_indent()));
 }
