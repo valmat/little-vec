@@ -8,7 +8,7 @@ CPP             = g++
 
 LD = $(CPP)
 
-OPT_FLAG=-O3 -pedantic -Wall -Wextra -fno-rtti -fno-exceptions -flto=auto
+OPT_FLAG=-O3 -pedantic -Wall -Wextra -fno-rtti -fno-exceptions -flto=auto -march=native -ffast-math
 # OPT_FLAG=-O3 -pedantic -Wall -Wextra -Wno-unused-parameter -fno-rtti -fno-exceptions
 #OPT_FLAG=-g -O3
 

@@ -16,7 +16,7 @@ struct DistFun final
     static dist_func_t get_func(size_t idx) noexcept;
 
 private:
-    static constexpr size_t _num_fun = 4;
+    static constexpr size_t _num_fun = 6;
     static const char* _names[_num_fun];
     static dist_func_t _funcs[_num_fun];
 };
