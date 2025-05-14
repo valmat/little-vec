@@ -46,6 +46,20 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
     } else if (it_top_k != j.end()) [[unlikely]] {
         top_k = it_top_k->get<size_t>();
     }
+
+    auto it_dist = j.find("dist");
+    if (it_dist != j.end() && it_dist->is_string()) {
+        std::string_view dist_name = it_dist->get<std::string_view>();
+        uint dist_index = DistFun::get_index(dist_name);
+        if (dist_index == 0) [[unlikely]] {
+            set_error(out, "Invalid 'dist' value. Unsupported distance function");
+            return;
+        }
+        meta->dist = dist_index;
+    } else if (it_dist != j.end() && !it_dist->is_string()) {
+        set_error(out, "Invalid 'dist' key: type must be 'string'.");
+        return;
+    }
     
 
     // Проверка data

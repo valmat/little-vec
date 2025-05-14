@@ -63,6 +63,20 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
     } else if (it_top_k != j.end()) [[unlikely]] {
         top_k = it_top_k->get<size_t>();
     }
+
+    auto it_dist = j.find("dist");
+    if (it_dist != j.end() && it_dist->is_string()) {
+        std::string_view dist_name = it_dist->get<std::string_view>();
+        uint dist_index = DistFun::get_index(dist_name);
+        if (dist_index == 0) [[unlikely]] {
+            set_error(out, "Invalid 'dist' value. Unsupported distance function");
+            return;
+        }
+        meta->dist = dist_index;
+    } else if (it_dist != j.end() && !it_dist->is_string()) {
+        set_error(out, "Invalid 'dist' key: type must be 'string'.");
+        return;
+    }
     
     auto it_vector = j.find("vector");
     if (it_vector == j.end() || !it_vector->is_array() || it_vector->empty()) [[unlikely]] {
@@ -90,7 +104,18 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
     // std::cout << "top_k: " << top_k << std::endl;
     // std::cout << "vector size: " << vector.size() << std::endl;
 
-    json results = _db->search_vec(meta, vector, top_k);
+    json results {
+        {"nearest", _db->search_vec(meta, vector, top_k)}
+    };
 
     out.setStr(results.dump(_opts.json_indent()));
 }
+
+
+
+// {
+//     "db_name": "my_vectors",
+//     "vector": [0.1, 0.2, 0.3, ...],
+//     "top_k": <количество ближайших векторов в ответе, опционально>,
+//     "dist": "<метрика, опционально>"  // переопределяет dist из БД
+// }

@@ -47,17 +47,16 @@ void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noex
             return;
         }
 
-        std::string_view dist_name;
         auto it_dist = j.find("dist");
         if (it_dist != j.end() && it_dist->is_string()) {
-            dist_name  = it_dist->get<std::string_view>();
+            std::string_view dist_name = it_dist->get<std::string_view>();
             dist_index = DistFun::get_index(dist_name);
+            if (dist_index == 0) [[unlikely]] {
+                set_error(out, "Invalid 'dist' value. Unsupported distance function");
+                return;
+            }            
         } else if (it_dist != j.end() && !it_dist->is_string()) {
             set_error(out, "Invalid 'dist' key: type must be 'string'.");
-            return;
-        }
-        if (dist_index == 0) [[unlikely]] {
-            set_error(out, "Invalid 'dist' value. Unsupported distance function");
             return;
         }
     }
