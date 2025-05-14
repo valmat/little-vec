@@ -3,46 +3,18 @@
 #include "RequestDelVectors.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
-
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include "req_utils.h"
 
 void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    if (!in.isPost() || in.isEmpty()) [[unlikely]] {
-        out.setCode(422);
-        return;
-    }
+    auto parsed = RequestUtils::init_meta(in, out, _db.get());
+    if (!parsed) [[unlikely]] return;
+    auto [js, db_name, meta] = std::move(parsed.value());
 
-    auto body = in.key().ToStringView();
-    std::string_view db_name;
     std::vector<std::string_view> ids;
-    std::optional<DbMeta> meta;
-    const json j = json::parse(body, nullptr, false);
     {
-        if (j.is_discarded() || !j.is_object()) [[unlikely]] {
-            set_error(out, "Invalid JSON.");
-            return;
-        }
-
-        auto it_db_name = j.find("db_name");
-        if (it_db_name == j.end() || !it_db_name->is_string()) [[unlikely]] {
-            set_error(out, "Missing or invalid 'db_name' key.");
-            return;
-        }
-        db_name = it_db_name->get<std::string_view>();
-        if (db_name.empty()) [[unlikely]] {
-            set_error(out, "'db_name' must not be empty.");
-            return;
-        }
-        meta = _db->get_meta(db_name);
-        if( !meta.has_value() ) [[unlikely]] {
-            set_error(out, "Data base doesn't exist.");
-            return;
-        }
-
-        auto it_data = j.find("data");
-        if (it_data == j.end() || !it_data->is_array()) [[unlikely]] {
+        auto it_data = js.find("data");
+        if (it_data == js.end() || !it_data->is_array()) [[unlikely]] {
             set_error(out, "Missing or invalid 'data' key. Expected array.");
             return;
         }

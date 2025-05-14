@@ -72,9 +72,13 @@ const char* VecDb::delete_db(std::string_view db_name) noexcept
         return "Data Base doesn't exist.";
     }
 
+    return delete_db(db_name, meta);
+}
+
+const char* VecDb::delete_db(std::string_view db_name, std::optional<DbMeta> meta) noexcept
+{
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
     auto payload_prefix = merge_args(_opts.payload_key(), meta->index, nullptr);
-
 
     Batch batch;
     auto iter(_db.newIter());

@@ -3,59 +3,28 @@
 #include "RequestCreateDb.h"
 #include "dist_fun.h"
 #include "utils_rocks.h"
-
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include "req_utils.h"
 
 void RequestCreateDb::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    if (!in.isPost() || in.isEmpty()) [[unlikely]] {
-        out.setCode(422);
-        return;
-    }
-    auto body = in.key().ToStringView();
+    auto parsed = RequestUtils::init(in, out);
+    if (!parsed) [[unlikely]] return;
+    auto [js, db_name] = std::move(parsed.value());
 
-    std::string_view db_name;
-    uint db_dim;
+    uint db_dim = RequestUtils::dim(js, out);
+    if (!db_dim) [[unlikely]] return;
+
     uint dist_index = DistFun::default_index;
-    const json j = json::parse(body, nullptr, false);
-    if (j.is_discarded() || !j.is_object()) [[unlikely]] {
-        set_error(out, "Invalid JSON.");
-        return;
-    }
-    
     {
-        auto it_name = j.find("name");
-        if (it_name == j.end() || !it_name->is_string()) [[unlikely]] {
-            set_error(out, "Missing or invalid 'name' key.");
-            return;
-        }
-        db_name = it_name->get<std::string_view>();
-        if (db_name.empty()) [[unlikely]] {
-            set_error(out, "DB name must not be empty");
-            return;
-        }
-
-        auto it_dim = j.find("dim");
-        if (it_dim == j.end() || !it_dim->is_number_integer()) [[unlikely]] {
-            set_error(out, "Missing or invalid 'dim' key.");
-            return;
-        }
-        db_dim = it_dim->get<uint>();
-        if (db_dim == 0) [[unlikely]] {
-            set_error(out, "Invalid 'dim' value.");
-            return;
-        }
-
-        auto it_dist = j.find("dist");
-        if (it_dist != j.end() && it_dist->is_string()) {
+        auto it_dist = js.find("dist");
+        if (it_dist != js.end() && it_dist->is_string()) {
             std::string_view dist_name = it_dist->get<std::string_view>();
             dist_index = DistFun::get_index(dist_name);
             if (dist_index == 0) [[unlikely]] {
                 set_error(out, "Invalid 'dist' value. Unsupported distance function");
                 return;
             }            
-        } else if (it_dist != j.end() && !it_dist->is_string()) {
+        } else if (it_dist != js.end() && !it_dist->is_string()) {
             set_error(out, "Invalid 'dist' key: type must be 'string'.");
             return;
         }

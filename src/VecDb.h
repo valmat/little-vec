@@ -21,6 +21,7 @@ public:
     const char* update_db(std::string_view db_name, uint dist_index) noexcept;
     const char* update_db(std::string_view db_name, std::optional<DbMeta> meta, uint dist_index) noexcept;
     const char* delete_db(std::string_view db_name) noexcept;
+    const char* delete_db(std::string_view db_name, std::optional<DbMeta> meta) noexcept;
 
     std::optional<DbMeta> get_meta(std::string_view db_name) noexcept;
 

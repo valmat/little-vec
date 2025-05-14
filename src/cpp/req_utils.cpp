@@ -3,32 +3,44 @@
 #include "dist_fun.h"
 #include "utils_rocks.h"
 
-std::optional<VecRequest> RequestUtils::init_vec(const ProtocolInPost &in, const ProtocolOut &out, VecDb* db) noexcept {
+
+std::optional<InitReqData> RequestUtils::init(const ProtocolInPost &in, const ProtocolOut &out) noexcept
+{
     if (!in.isPost() || in.isEmpty()) [[unlikely]] {
         out.setCode(422);
         return std::nullopt;
     }
 
-    json j = json::parse(in.key().ToStringView(), nullptr, false);
-    if (j.is_discarded() || !j.is_object()) [[unlikely]] {
+    json js = json::parse(in.key().ToStringView(), nullptr, false);
+    if (js.is_discarded() || !js.is_object()) [[unlikely]] {
         set_error(out, "Invalid JSON.");
         return std::nullopt;
     }
 
-    auto it_db_name = j.find("db_name");
-    if (it_db_name == j.end() || !it_db_name->is_string() || it_db_name->get<std::string_view>().empty()) [[unlikely]] {
+    auto it_db_name = js.find("db_name");
+    if (it_db_name == js.end() || !it_db_name->is_string() || it_db_name->get<std::string_view>().empty()) [[unlikely]] {
         set_error(out, "Missing or invalid 'db_name' key.");
         return std::nullopt;
     }
 
     std::string_view db_name = it_db_name->get<std::string_view>();
+
+    return InitReqData{ std::move(js), db_name };
+}
+
+std::optional<InitReqDataExt> RequestUtils::init_meta(const ProtocolInPost &in, const ProtocolOut &out, VecDb* db) noexcept
+{
+    auto parsed = init(in, out);
+    if (!parsed) [[unlikely]] return {};
+    auto [js, db_name] = std::move(parsed.value());
+
     auto meta = db->get_meta(db_name);
     if (!meta.has_value()) [[unlikely]] {
         set_error(out, "Data base doesn't exist.");
         return std::nullopt;
     }
 
-    return VecRequest{ std::move(j), db_name, meta };
+    return InitReqDataExt{ std::move(js), db_name, meta };
 }
 
 size_t RequestUtils::top_k_dist_vec(const json& js, const VecDbOpts& opts, DbMeta& meta, const ProtocolOut &out) noexcept
@@ -62,7 +74,23 @@ size_t RequestUtils::top_k_dist_vec(const json& js, const VecDbOpts& opts, DbMet
     return top_k;
 }
 
-bool RequestUtils::validate_vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept {
+uint RequestUtils::dim(const json& js, const ProtocolOut &out) noexcept
+{
+    auto it_dim = js.find("dim");
+    if (it_dim == js.end() || !it_dim->is_number_integer()) [[unlikely]] {
+        set_error(out, "Missing or invalid 'dim' key.");
+        return 0;
+    }
+    uint db_dim = it_dim->get<uint>();
+    if (db_dim == 0) [[unlikely]] {
+        set_error(out, "Invalid 'dim' value.");
+        return 0;
+    }
+    return db_dim;
+}
+
+bool RequestUtils::validate_vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept
+{
     auto it_vector = js.find("vector");
     if (!it_vector->is_array() || it_vector->size() != dim) [[unlikely]] {
         set_error(out, "Vector must be a numeric array with correct dimension.");
