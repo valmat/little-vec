@@ -378,15 +378,48 @@ std::vector<std::vector<SearchResult>> VecDb::search_batch_vec(
     size_t top_k) noexcept
 {
     auto iter(_db.newIter());
-    
-    // TODO
+
+    auto dist_func = DistFun::get_func(meta->dist);
+    size_t dim = meta->dim;
+    size_t batch_size = vectors.size();
+
+    // Создаем по MaxHeap для каждого вектора из пакета
+    std::vector<MaxHeap> heaps;
+    heaps.reserve(batch_size);
+    for (size_t i = 0; i < batch_size; ++i) {
+        heaps.emplace_back(top_k);
+    }
+
+    std::vector<float> stored_vec(dim);
+    float* data = stored_vec.data();
+
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
         if (iter->status().ok()) [[likely]] {
-            // TODO
+            deserialize_buf(iter->value().data(), dim, data);
+
+            // Считаем расстояние до каждого вектора из пакета и обновляем соответствующие MaxHeap
+            for (size_t i = 0; i < batch_size; ++i) {
+                float dist = dist_func(vectors[i].data(), data, dim);
+                heaps[i].update(dist, iter->key().ToStringView());
+            }
         }
     }
-    // TODO
 
-    return {};
+    // Подготовка результатов
+    std::vector<std::vector<SearchResult>> results(batch_size);
+    for (size_t i = 0; i < batch_size; ++i) {
+        heaps[i].shrink();
+        heaps[i].sort();
+
+        for (auto& item : heaps[i].container()) {
+            turn_to_id(item.id);
+            auto payload_key = merge_args(_opts.payload_key(), meta->index, item.id);
+            item.payload = _db.get(payload_key);
+        }
+
+        results[i] = std::move(heaps[i]).container();
+    }
+
+    return results;
 }
