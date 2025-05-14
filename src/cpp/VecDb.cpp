@@ -237,19 +237,7 @@ const char* VecDb::del_vec(
 }
 
 
-struct SearchResult final
-{
-    std::string key;
-    float distance;
-
-    // Для priority_queue нужен оператор сравнения
-    bool operator<(const SearchResult& other) const noexcept
-    {
-        return distance < other.distance;
-    }
-};
-
-static
+inline
 std::string_view receive_id(std::string_view str, char delim = ':', int delim_count = 2) noexcept
 {
     size_t pos = 0;
@@ -267,7 +255,7 @@ std::string_view receive_id(std::string_view str, char delim = ':', int delim_co
     return str.substr(pos);
 }
 
-static
+inline
 void turn_to_id(std::string &str, char delim = ':', int delim_count = 2) noexcept
 {
     size_t pos = 0;
@@ -289,6 +277,54 @@ void turn_to_id(std::string &str, char delim = ':', int delim_count = 2) noexcep
     str.erase(0, pos);
 }
 
+struct SearchResult final
+{
+    std::string key{};
+    float distance = std::numeric_limits<float>::max();
+    std::string payload{};
+};
+
+class MaxHeap final
+{
+    size_t _top_index = 0;
+    float _top_dist = std::numeric_limits<float>::max();
+    std::vector<SearchResult> _container;
+
+public:
+
+    MaxHeap(size_t top_k) noexcept :
+        _container(top_k)
+    {}
+
+    void update(float distance, std::string_view key) noexcept
+    {
+        if (distance < _top_dist) [[unlikely]]  {
+
+            if (_container[_top_index].key.size() != key.size()) [[unlikely]] {
+                _container[_top_index].key.resize(key.size());
+            }
+            std::copy(key.begin(), key.end(), _container[_top_index].key.begin());                
+            _container[_top_index].distance = distance;
+
+            // finding new _top_dist and _top_index
+            _top_dist = _container[0].distance;
+            _top_index = 0;
+
+            for (size_t i = 1; i < _container.size(); ++i) {
+                if (_container[i].distance > _top_dist) {
+                    _top_dist = _container[i].distance;
+                    _top_index = i;
+                }
+            }
+        }
+    }
+
+    std::vector<SearchResult>& container() & noexcept
+    {
+        return _container;
+    }
+};
+
 std::vector<SearchData> VecDb::search_vec(
     std::optional<DbMeta> meta,
     const std::vector<float>& vector, 
@@ -302,71 +338,41 @@ std::vector<SearchData> VecDb::search_vec(
     std::vector<float> stored_vec(dim);
     float* data = stored_vec.data();
 
+    MaxHeap max_heap(top_k);
+
     auto vec_prefix = merge_args(_opts.vec_key(), meta->index, nullptr);
-
-    std::vector<SearchResult> heap_container;
-    heap_container.reserve(top_k);
-    for (size_t i = 0; i < top_k; ++i) {
-        heap_container.emplace_back(SearchResult{{}, std::numeric_limits<float>::max()});
-    }
-
-    // Создаём priority_queue на основе заранее выделенного вектора
-    std::priority_queue<SearchResult, std::vector<SearchResult>> max_heap(
-        std::less<SearchResult>(), std::move(heap_container)
-    );
-
     for (iter->Seek(vec_prefix); iter->Valid() && iter->key().starts_with(vec_prefix); iter->Next()) {
         if (iter->status().ok()) [[likely]] {
             deserialize_buf(iter->value().data(), dim, data);
             float dist = dist_func(vector.data(), data, dim);
+
+            // const float* value = reinterpret_cast<const float*>(iter->value().data());
+            // float dist = dist_func(vector.data(), value, dim);
             
-            if (dist < max_heap.top().distance) {
-                // Извлекаем верхний элемент
-                SearchResult top_element = std::move(const_cast<SearchResult&>(max_heap.top()));
-                max_heap.pop();
-
-                std::string_view key_view = iter->key().ToStringView();
-
-                if (top_element.key.size() != key_view.size()) [[unlikely]] {
-                    top_element.key.resize(key_view.size());
-                }
-                std::copy(key_view.begin(), key_view.end(), top_element.key.begin());                
-                top_element.distance = dist;
-
-                // Вставляем обратно в кучу
-                max_heap.emplace(std::move(top_element));
-            }
+            max_heap.update(dist, iter->key().ToStringView());
         }
     }
 
-    // Переносим результаты из кучи в вектор
     std::vector<SearchData> results;
-    // std::vector<SearchResult> results;
     results.reserve(top_k);
-    while (!max_heap.empty()) {
-        auto top = std::move(const_cast<SearchResult&>(max_heap.top()));
-        max_heap.pop();
 
+    for (auto& item: max_heap.container()) {
+        if(!item.key.empty()) [[likely]] {
 
-        std::cout << "key: " << top.key << std::endl;
-        turn_to_id(top.key);
-        std::cout << "id: " << top.key << std::endl;
-        std::cout << "distance: " << top.distance << std::endl;
+            turn_to_id(item.key);
+            auto payload_key = merge_args(_opts.payload_key(), meta->index, item.key);
 
-
-        auto payload_key = merge_args(_opts.payload_key(), meta->index, top.key);
-        
-        if(!top.key.empty()) [[unlikely]] {
             results.emplace_back(SearchData{
-                std::move(top.key),   // id
-                top.distance,         // distance
+                std::move(item.key),  // id
+                item.distance,        // distance
                 _db.get(payload_key)  // payload
             });
         }
     }
 
-    // Переворачиваем, чтобы получить элементы от ближайшего к дальнему
-    std::reverse(results.begin(), results.end());
+    std::sort(results.begin(), results.end(), [](const SearchData& a, const SearchData& b) {
+        return a.distance < b.distance;
+    });
 
     return results;
 }
