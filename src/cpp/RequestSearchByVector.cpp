@@ -10,7 +10,7 @@
 using json = nlohmann::json;
 
 static
-void to_json(json& j, const SearchData& data)
+void to_json(json& j, const SearchResult& data)
 {
     j = json{
         {"id", data.id},

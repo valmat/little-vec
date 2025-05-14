@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <optional>
+#include <limits>
 
 struct DbMeta final
 {
@@ -11,9 +12,9 @@ struct DbMeta final
     static std::optional<DbMeta> deserialize(std::string_view data) noexcept;
 };
 
-struct SearchData final
+struct SearchResult final
 {
-    std::string id;
-    float distance;
-    std::string payload;
+    std::string id{};
+    float distance = std::numeric_limits<float>::max();
+    std::string payload{};
 };

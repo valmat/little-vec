@@ -35,7 +35,7 @@ public:
         std::optional<DbMeta> meta,
         const std::vector<std::string_view>& ids) noexcept;
 
-    std::vector<SearchData> search_vec(
+    std::vector<SearchResult> search_vec(
         std::optional<DbMeta> meta,
         const std::vector<float>& vector, 
         size_t top_k) noexcept;

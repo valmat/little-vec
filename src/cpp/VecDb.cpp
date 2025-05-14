@@ -1,7 +1,6 @@
 #include <queue>
 #include <utility>
 #include <algorithm>
-#include <limits>
 
 #include "VecDb.h"
 #include "utils.h"
@@ -277,13 +276,6 @@ void turn_to_id(std::string &str, char delim = ':', int delim_count = 2) noexcep
     str.erase(0, pos);
 }
 
-struct SearchResult final
-{
-    std::string key{};
-    float distance = std::numeric_limits<float>::max();
-    std::string payload{};
-};
-
 class MaxHeap final
 {
     size_t _top_index = 0;
@@ -300,10 +292,10 @@ public:
     {
         if (distance < _top_dist) [[unlikely]]  {
 
-            if (_container[_top_index].key.size() != key.size()) [[unlikely]] {
-                _container[_top_index].key.resize(key.size());
+            if (_container[_top_index].id.size() != key.size()) [[unlikely]] {
+                _container[_top_index].id.resize(key.size());
             }
-            std::copy(key.begin(), key.end(), _container[_top_index].key.begin());                
+            std::copy(key.begin(), key.end(), _container[_top_index].id.begin());                
             _container[_top_index].distance = distance;
 
             // finding new _top_dist and _top_index
@@ -325,7 +317,7 @@ public:
     }
 };
 
-std::vector<SearchData> VecDb::search_vec(
+std::vector<SearchResult> VecDb::search_vec(
     std::optional<DbMeta> meta,
     const std::vector<float>& vector, 
     size_t top_k) noexcept
@@ -353,24 +345,24 @@ std::vector<SearchData> VecDb::search_vec(
         }
     }
 
-    std::vector<SearchData> results;
+    std::vector<SearchResult> results;
     results.reserve(top_k);
 
     for (auto& item: max_heap.container()) {
-        if(!item.key.empty()) [[likely]] {
+        if(!item.id.empty()) [[likely]] {
 
-            turn_to_id(item.key);
-            auto payload_key = merge_args(_opts.payload_key(), meta->index, item.key);
+            turn_to_id(item.id);
+            auto payload_key = merge_args(_opts.payload_key(), meta->index, item.id);
 
-            results.emplace_back(SearchData{
-                std::move(item.key),  // id
+            results.emplace_back(SearchResult{
+                std::move(item.id),   // id
                 item.distance,        // distance
                 _db.get(payload_key)  // payload
             });
         }
     }
 
-    std::sort(results.begin(), results.end(), [](const SearchData& a, const SearchData& b) {
+    std::sort(results.begin(), results.end(), [](const SearchResult& a, const SearchResult& b) {
         return a.distance < b.distance;
     });
 
