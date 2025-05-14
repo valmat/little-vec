@@ -4,48 +4,18 @@
 #include "dist_fun.h"
 #include "utils_rocks.h"
 #include "utils.h"
-
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include "req_utils.h"
 
 void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
-    // Check if the request is a POST and not empty
-    if (!in.isPost() || in.isEmpty()) [[unlikely]] {
-        out.setCode(422); // Set HTTP code 422 (Unprocessable Entity)
-        return;
-    }
-    auto body = in.key().ToStringView();
+    auto parsed = RequestUtils::init_vec(in, out, _db.get());
+    if (!parsed) [[unlikely]] return;
+    auto [js, db_name, meta] = std::move(parsed.value());
 
-    // Try to parse the JSON body
-    const json j = json::parse(body, nullptr, false);
-    if (j.is_discarded() || !j.is_object()) [[unlikely]] {
-        set_error(out, "Invalid JSON.");
-        return;
-    }
-
-    // Check if the "db_name" field exists and is a string
-    auto it_db_name = j.find("db_name");
-    if (it_db_name == j.end() || !it_db_name->is_string()) [[unlikely]] {
-        set_error(out, "Missing or invalid 'db_name' key.");
-        return;
-    }
-    auto db_name = it_db_name->get<std::string_view>();
-    if (db_name.empty()) [[unlikely]] {
-        set_error(out, "'db_name' must not be empty.");
-        return;
-    }
-
-    // Check if the database exists
-    auto meta = _db->get_meta(db_name);
-    if( !meta.has_value() ) [[unlikely]] {
-        set_error(out, "Data base doesn't exist.");
-        return;
-    }
 
     // Check if the "data" field exists and is an array
-    auto it_data = j.find("data");
-    if (it_data == j.end() || !it_data->is_array()) [[unlikely]] {
+    auto it_data = js.find("data");
+    if (it_data == js.end() || !it_data->is_array()) [[unlikely]] {
         set_error(out, "Missing or invalid 'data' key. Must be an array.");
         return;
     }
