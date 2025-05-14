@@ -1,9 +1,6 @@
-#include <iostream>
-#include <string>
 #include <vector>
 #include "RequestSearchByVector.h"
 #include "utils_rocks.h"
-#include "units.h"
 #include "req_validator.h"
 
 void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out) noexcept

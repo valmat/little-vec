@@ -13,14 +13,7 @@ void RequestDelVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
     std::vector<std::string_view> ids;
     {
         auto it_data = js.find("data");
-        if (it_data == js.end() || !it_data->is_array()) [[unlikely]] {
-            set_error(out, "Missing or invalid 'data' key. Expected array.");
-            return;
-        }
-        if (it_data->empty()) [[unlikely]] {
-            set_error(out, "'data' array must contain at least one item.");
-            return;
-        }
+        if ( !ReqValidator::data_array(it_data, js.end(), out) ) [[unlikely]] return;
 
         ids.reserve(it_data->size());
 

@@ -14,10 +14,7 @@ void RequestSetVectors::run(const ProtocolInPost &in, const ProtocolOut &out) no
 
     // Check if the "data" field exists and is an array
     auto it_data = js.find("data");
-    if (it_data == js.end() || !it_data->is_array()) [[unlikely]] {
-        set_error(out, "Missing or invalid 'data' key. Must be an array.");
-        return;
-    }
+    if ( !ReqValidator::data_array(it_data, js.end(), out) ) [[unlikely]] return;
 
     // Prepare a buffer for serializing vectors
     std::vector<char> vector_serialized;

@@ -17,10 +17,7 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
     
     // Проверка data
     auto it_data = js.find("data");
-    if (it_data == js.end() || !it_data->is_array() || it_data->empty()) [[unlikely]] {
-        set_error(out, "Missing or invalid 'data' key. Must be a non-empty array.");
-        return;
-    }
+    if ( !ReqValidator::data_array(it_data, js.end(), out) ) [[unlikely]] return;
 
     std::vector<std::vector<float>> vectors;
     vectors.reserve(it_data->size());
