@@ -77,7 +77,6 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
         return;
     }
     
-
     // Проверка data
     auto it_data = j.find("data");
     if (it_data == j.end() || !it_data->is_array() || it_data->empty()) [[unlikely]] {

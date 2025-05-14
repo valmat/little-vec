@@ -83,8 +83,6 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
         set_error(out, "Missing or invalid 'vector' key. Must be a non-empty float array.");
         return;
     }
-    // std::cout << "it_vector->size(): " << it_vector->size() << std::endl;
-    // std::cout << "meta->dim: " << meta->dim << std::endl;
     if (it_vector->size() != meta->dim) [[unlikely]] {
         set_error(out, "Demention of vector must mutch to the Data Base Demention.");
         return;
@@ -99,10 +97,6 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
         }
         vector.push_back(v.get<float>());
     }
-
-    // std::cout << "db_name: " << db_name << std::endl;
-    // std::cout << "top_k: " << top_k << std::endl;
-    // std::cout << "vector size: " << vector.size() << std::endl;
 
     json results {
         {"nearest", _db->search_vec(meta, vector, top_k)}

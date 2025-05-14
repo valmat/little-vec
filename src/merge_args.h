@@ -6,7 +6,7 @@
 #include <charconv>
 #include <type_traits>
 
-// Вспомогательная функция для вычисления размера аргумента
+// Helper function to calculate the size of the argument
 std::size_t arg_size(const std::string& s) noexcept {
     return s.size();
 }
@@ -28,7 +28,6 @@ std::size_t arg_size(const char* s) noexcept {
 }
 
 template <typename T>
-// requires std::is_unsigned_v<T>
 requires std::is_integral_v<T>
 constexpr std::size_t arg_size(T value) noexcept {
     std::size_t size = 0;
@@ -39,7 +38,7 @@ constexpr std::size_t arg_size(T value) noexcept {
     return size;
 }
 
-// Вспомогательная функция для записи аргумента в буфер
+// Helper function to write the argument into a buffer
 inline char* arg_write(char* dest, const std::string& s) noexcept {
     return std::copy(s.begin(), s.end(), dest);
 }
@@ -62,13 +61,11 @@ inline char* arg_write(char* dest, std::nullptr_t) noexcept {
 
 
 template <typename T>
-// requires std::is_unsigned_v<T>
 inline char* arg_write(char* dest, T value) noexcept {
     auto [ptr, ec] = std::to_chars(dest, dest + 20, value);
     return ptr;
 }
 
-// Основная функция merge_args
 template <typename... Args>
 std::string merge_args(const Args&... args) noexcept {
     constexpr char separator = ':';
@@ -77,7 +74,6 @@ std::string merge_args(const Args&... args) noexcept {
         return {};
     }
 
-    // Считаем общий размер всех аргументов
     const std::size_t total_size = (arg_size(args) + ...) + (num_args - 1);
 
     std::string result;

@@ -13,12 +13,4 @@ VecDbOpts::VecDbOpts(const RocksServer::IniConfigs& cfg) noexcept
     _top_k          = cfg.get("top_k",          _top_k);
     _json_indent    = cfg.get("json_indent",    _json_indent);
 
-
-    std::cout << "db_counter_key: [" << _db_counter_key << "]" << std::endl;
-    std::cout << "db_key:         [" << _db_key         << "]" << std::endl;
-    std::cout << "vec_key:        [" << _vec_key        << "]" << std::endl;
-    std::cout << "payload_key:    [" << _payload_key    << "]" << std::endl;
-    std::cout << "max_dim:        [" << _max_dim        << "]" << std::endl;
-    std::cout << "top_k:          [" << _top_k          << "]" << std::endl;
-    std::cout << "json_indent:    [" << _json_indent    << "]" << std::endl;
 }
