@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include "RequestSetVectors.h"
-#include "dist_fun.h"
 #include "utils_rocks.h"
 #include "utils.h"
 #include "req_validator.h"

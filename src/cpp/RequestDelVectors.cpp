@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include "RequestDelVectors.h"
-#include "dist_fun.h"
 #include "utils_rocks.h"
 #include "req_validator.h"
 

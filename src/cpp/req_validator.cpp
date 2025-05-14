@@ -43,35 +43,37 @@ std::optional<InitReqDataExt> ReqValidator::init_meta(const ProtocolInPost &in, 
     return InitReqDataExt{ std::move(js), db_name, meta };
 }
 
-size_t ReqValidator::top_k_dist_vec(const json& js, const VecDbOpts& opts, DbMeta& meta, const ProtocolOut &out) noexcept
+size_t ReqValidator::top_k(const json& js, size_t value, const ProtocolOut &out) noexcept
 {
-    size_t top_k = opts.top_k();
     auto it_top_k = js.find("top_k");
     if (it_top_k != js.end() && !it_top_k->is_number_integer()) [[unlikely]] {
         set_error(out, "Value of 'top_k' must be integer.");
         return 0;
     } else if (it_top_k != js.end()) [[unlikely]] {
-        top_k = it_top_k->get<size_t>();
-        if (top_k == 0) [[unlikely]] {
+        value = it_top_k->get<size_t>();
+        if (value == 0) [[unlikely]] {
             set_error(out, "Invalid 'top_k' value. Must be more than 0.");
             return 0;
         }        
     }
+    return value;
+}
 
+size_t ReqValidator::dist(const json& js, uint& dist_index, const ProtocolOut &out) noexcept
+{
     auto it_dist = js.find("dist");
     if (it_dist != js.end() && it_dist->is_string()) {
         std::string_view dist_name = it_dist->get<std::string_view>();
-        uint dist_index = DistFun::get_index(dist_name);
+        dist_index = DistFun::get_index(dist_name);
         if (dist_index == 0) [[unlikely]] {
             set_error(out, "Invalid 'dist' value. Unsupported distance function");
-            return 0;
+            return false;
         }
-        meta.dist = dist_index;
     } else if (it_dist != js.end() && !it_dist->is_string()) {
         set_error(out, "Invalid 'dist' key: type must be 'string'.");
-        return 0;
+        return false;
     }
-    return top_k;
+    return true;
 }
 
 uint ReqValidator::dim(const json& js, const ProtocolOut &out) noexcept
@@ -89,7 +91,7 @@ uint ReqValidator::dim(const json& js, const ProtocolOut &out) noexcept
     return db_dim;
 }
 
-bool ReqValidator::validate_vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept
+bool ReqValidator::vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept
 {
     auto it_vector = js.find("vector");
     if (!it_vector->is_array() || it_vector->size() != dim) [[unlikely]] {
