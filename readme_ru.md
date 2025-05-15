@@ -65,6 +65,8 @@ cd build_deb
 sudo dpkg -i littlevec_<version>_amd64.deb
 ```
 
+Перед установкой littlevec необходимо установить [последний релиз RocksServer](https://github.com/valmat/RocksServer/releases).
+
 ### Запуск через Docker
 
 [Образ на DockerHub](https://hub.docker.com/r/valmatdocker/littlevec)

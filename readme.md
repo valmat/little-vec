@@ -64,6 +64,7 @@ As a result, you will get a package called `littlevec_<version>_amd64.deb`, whic
 ```bash
 sudo dpkg -i littlevec_<version>_amd64.deb
 ```
+Before installing littlevec, [install the latest release of RocksServer](https://github.com/valmat/RocksServer/releases).
 
 ### Running with Docker
 
