@@ -65,6 +65,49 @@ As a result, you will get a package called `littlevec_<version>_amd64.deb`, whic
 sudo dpkg -i littlevec_<version>_amd64.deb
 ```
 
+### Running with Docker
+
+You can start the container with the following command:
+
+```bash
+docker pull valmatdocker/littlevec
+docker run -d -p 5577:5577 --name littlevec valmatdocker/littlevec
+```
+
+- The container will run in the background.
+- RocksServer with the LittleVec plugin will be available on port `5577`.
+
+To stop the container, use the command `docker stop littlevec`.  
+To remove it, use `docker rm littlevec`.
+
+### Using Docker Compose
+
+For convenience, you can use [docker-compose](https://docs.docker.com/compose/):
+
+Create a file called `docker-compose.yml` with the following content:
+
+```yaml
+version: '3.8'
+services:
+  littlevec:
+    image: valmatdocker/littlevec
+    container_name: littlevec
+    ports:
+      - "5577:5577"
+```
+
+To start:
+
+```bash
+docker-compose up -d
+```
+
+To stop:
+
+```bash
+docker-compose down -v
+```
+
 ---
 
 # API

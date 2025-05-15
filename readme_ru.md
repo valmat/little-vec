@@ -74,17 +74,16 @@ docker pull valmatdocker/littlevec
 docker run -d -p 5577:5577 --name littlevec valmatdocker/littlevec
 ```
 
-- Контейнер запустится в фоне.
+- Контейнер запустится в фоновом режиме.
 - RocksServer с плагином LittleVec будет доступен на порту `5577`.
 
-
-Чтобы остановить запустите контейнер `docker stop littlevec`, а что бы удалить, выполните  `docker rm littlevec`
+Чтобы остановить контейнер, выполните команду `docker stop littlevec`, а чтобы удалить его — `docker rm littlevec`.
 
 ### Использование Docker Compose
 
 Для удобства можно использовать [docker-compose](https://docs.docker.com/compose/):
 
-Создайте файл `docker-compose.yml` с содержимым:
+Создайте файл `docker-compose.yml` со следующим содержимым:
 
 ```yaml
 version: '3.8'
@@ -101,6 +100,7 @@ services:
 ```bash
 docker-compose up -d
 ```
+
 Остановка:
 
 ```bash
