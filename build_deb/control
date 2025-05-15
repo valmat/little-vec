@@ -1,0 +1,12 @@
+Package: littlevec
+Source: rocksdb
+Version: %version%
+Maintainer: valmat <ufabiz@gmail.com>
+Architecture: amd64
+Section: contrib
+Priority: optional
+Installed-Size: %InstalledSize%
+Depends: bash, libgflags-dev, libsnappy-dev, zlib1g-dev, libbz2-dev, liblz4-dev, libzstd-dev, rocksserver
+Description: LittleVec
+    LittleVec is a lightweight and memory-efficient vector database. https://github.com/valmat/little-vec
+
