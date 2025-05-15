@@ -1,6 +1,6 @@
 # LittleVec
 
-*[Read this README in Russian](readme_ru.md)*
+*[Russian README](readme_ru.md)*
 
 **LittleVec** is a lightweight and memory-efficient vector database.  
 It allows you to quickly search for the nearest vectors and store extra information (payload) for each object.
@@ -164,7 +164,7 @@ On success, returns code 200 and body:
     "db_name": "my_vectors",
     "vector": [0.1, 0.2, 0.3, ...],
     "top_k": <number of nearest vectors to return, optional>,
-    "dist": "<metric, optional>"  // overrides database dist
+    "dist": "<metric, optional (overrides database dist)>"
 }
 ```
 
@@ -239,7 +239,7 @@ The response body always contains:
 
 - Built on [RocksDB](https://rocksdb.org/) — a very [efficient database](https://github.com/facebook/rocksdb) with iterators and high SSD performance.
 
-- The main goal of LittleVec is to be a memory-efficient vector database. Low RAM usage: **15–20 MB** even when storing millions of vectors and gigabytes of data.
+- The main goal of *LittleVec* is to be a memory-efficient vector database. Low RAM usage: **15–20 MB** even when storing millions of vectors and gigabytes of data.
 
 - On one million vectors of size 50, a search takes about 60 ms.
 
