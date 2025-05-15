@@ -22,9 +22,28 @@ It works as a plugin for [RocksServer](https://github.com/valmat/RocksServer).
 
 ## Quick Start
 
-1. Install RocksServer and the LittleVec plugin (see the installation guide).
+1. Install [RocksServer](https://github.com/valmat/RocksServer) and the LittleVec plugin.
 2. Start RocksServer.
 3. Use the LittleVec HTTP API to work with vectors and search.
+
+To install the *LittleVec* plugin for RocksServer, you need to build the project:
+```bash
+cd src
+make -j
+```
+
+As a result, the file `little_vec.so` will appear in the `src` directory. You need to place this file in the RocksServer plugins directory.
+The plugins directory can be set in the [config.ini](https://github.com/valmat/RocksServer/blob/master/src/config.ini) file.
+It is specified by the `extdir` parameter, which is `/usr/lib/rocksserver/plugins` by default.
+
+You can also set your own LittleVec options, which are described in the corresponding [ini file](https://github.com/valmat/little-vec/blob/dev/config.ini), by adding them to the RocksServer ini file, which is located in the `/etc/rocksserver` directory.
+
+After this, you need to restart RocksServer:
+```bash
+sudo /etc/init.d/rocksserver restart
+```
+Now the database is ready to use.
+By default, LittleVec works on 127.0.0.1:5577, but you can change this and other settings by specifying them in the ini file.
 
 ---
 

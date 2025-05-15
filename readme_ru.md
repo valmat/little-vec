@@ -22,9 +22,31 @@
 
 ## Быстрый старт
 
-1. Установите RocksServer и плагин LittleVec (см. инструкцию по установке).
+1. Установите [RocksServer](https://github.com/valmat/RocksServer) и плагин LittleVec.
 2. Запустите RocksServer.
-3. Используйте HTTP API LittleVec для работы с векторами и поиском.
+3. Используйте HTTP API LittleVec для работы с векторами и поиска.
+
+Чтобы установить плагин *LittleVec* для RocksServer, необходимо скомпилировать проект:
+```bash
+cd src
+make -j
+```
+
+В результате в каталоге `src` появится файл `little_vec.so`. Его нужно разместить в каталоге плагинов RocksServer.
+Каталог плагинов можно определить в файле [config.ini](https://github.com/valmat/RocksServer/blob/master/src/config.ini).
+Он задаётся параметром `extdir`, по умолчанию это `/usr/lib/rocksserver/plugins`.
+
+Также вы можете задать собственные настройки LittleVec, которые описаны в соответствующем [ini-файле](https://github.com/valmat/little-vec/blob/dev/config.ini), добавив их в ini-файл RocksServer, который располагается в каталоге `/etc/rocksserver`.
+
+После этого необходимо перезапустить RocksServer:
+```bash
+sudo /etc/init.d/rocksserver restart
+```
+Теперь база данных готова к использованию.
+По умолчанию LittleVec работает на 127.0.0.1:5577, но вы можете изменить эти и другие настройки, указав их в ini-файле.
+
+
+
 
 ---
 
