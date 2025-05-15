@@ -292,7 +292,7 @@ On success, returns code 200 and body:
                 { "id": "123", "distance": 0.123, "payload": ... },
                 ...
             ],
-            "extra": ... // if extra was sent
+            "extra": <JSON, if extra was sent>
         },
         ...
     ]

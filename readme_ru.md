@@ -290,7 +290,7 @@ docker-compose down -v
                 { "id": "123", "distance": 0.123, "payload": ... },
                 ...
             ],
-            "extra": ... // если был передан extra
+            "extra": <JSON, если он был отправлен в запросе>
         },
         ...
     ]
