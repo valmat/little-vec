@@ -1,6 +1,6 @@
 # LittleVec
 
-*[Russian README](readme_ru.md)*
+[Russian README](readme_ru.md)
 
 **LittleVec** is a lightweight and memory-efficient vector database.  
 It allows you to quickly search for the nearest vectors and store extra information (payload) for each object.
