@@ -26,24 +26,44 @@ It works as a plugin for [RocksServer](https://github.com/valmat/RocksServer).
 2. Start RocksServer.
 3. Use the LittleVec HTTP API to work with vectors and search.
 
-To install the *LittleVec* plugin for RocksServer, you need to build the project:
+### Installing the *LittleVec* Plugin for RocksServer
+
+To install the plugin, you need to compile the project:
+
 ```bash
 cd src
 make -j
 ```
 
-As a result, the file `little_vec.so` will appear in the `src` directory. You need to place this file in the RocksServer plugins directory.
-The plugins directory can be set in the [config.ini](https://github.com/valmat/RocksServer/blob/master/src/config.ini) file.
-It is specified by the `extdir` parameter, which is `/usr/lib/rocksserver/plugins` by default.
+After this, a file named `little_vec.so` will appear in the `src` directory. You need to place this file into the RocksServer plugin directory.
+The plugin directory is set in the [config.ini](https://github.com/valmat/RocksServer/blob/master/src/config.ini) file with the `extdir` parameter (default: `/usr/lib/rocksserver/plugins`).
 
-You can also set your own LittleVec options, which are described in the corresponding [ini file](https://github.com/valmat/little-vec/blob/dev/config.ini), by adding them to the RocksServer ini file, which is located in the `/etc/rocksserver` directory.
+You can also set your own LittleVec settings by adding them to the RocksServer ini file, which is located in the `/etc/rocksserver` directory. You can find a description of all possible settings in the corresponding [ini file](https://github.com/valmat/little-vec/blob/dev/config.ini).
 
 After this, you need to restart RocksServer:
+
 ```bash
 sudo /etc/init.d/rocksserver restart
 ```
-Now the database is ready to use.
-By default, LittleVec works on 127.0.0.1:5577, but you can change this and other settings by specifying them in the ini file.
+
+Now the database is ready to use.  
+By default, LittleVec works on 127.0.0.1:5577, but you can change this and other settings in the ini file.
+
+### Installing via DEB Package
+
+To make installation easier, you can build a DEB package.  
+To do this, go to the `build_deb` directory and run the build script `build.sh`:
+
+```bash
+cd build_deb
+./build.sh
+```
+
+As a result, you will get a package called `littlevec_<version>_amd64.deb`, which you can install with the following command:
+
+```bash
+sudo dpkg -i littlevec_<version>_amd64.deb
+```
 
 ---
 

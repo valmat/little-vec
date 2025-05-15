@@ -26,27 +26,44 @@
 2. Запустите RocksServer.
 3. Используйте HTTP API LittleVec для работы с векторами и поиска.
 
-Чтобы установить плагин *LittleVec* для RocksServer, необходимо скомпилировать проект:
+### Установка плагина *LittleVec* для RocksServer
+
+Для установки плагина необходимо скомпилировать проект:
+
 ```bash
 cd src
 make -j
 ```
 
-В результате в каталоге `src` появится файл `little_vec.so`. Его нужно разместить в каталоге плагинов RocksServer.
-Каталог плагинов можно определить в файле [config.ini](https://github.com/valmat/RocksServer/blob/master/src/config.ini).
-Он задаётся параметром `extdir`, по умолчанию это `/usr/lib/rocksserver/plugins`.
+В результате в каталоге `src` появится файл `little_vec.so`. Его нужно поместить в каталог плагинов RocksServer.
+Каталог плагинов определяется в файле [config.ini](https://github.com/valmat/RocksServer/blob/master/src/config.ini) параметром `extdir` (по умолчанию: `/usr/lib/rocksserver/plugins`).
 
-Также вы можете задать собственные настройки LittleVec, которые описаны в соответствующем [ini-файле](https://github.com/valmat/little-vec/blob/dev/config.ini), добавив их в ini-файл RocksServer, который располагается в каталоге `/etc/rocksserver`.
+Вы также можете задать собственные настройки LittleVec, добавив их в ini-файл RocksServer, который располагается в каталоге `/etc/rocksserver`. Описание всех возможных настроек приведено в соответствующем [ini-файле](https://github.com/valmat/little-vec/blob/dev/config.ini).
 
 После этого необходимо перезапустить RocksServer:
+
 ```bash
 sudo /etc/init.d/rocksserver restart
 ```
-Теперь база данных готова к использованию.
-По умолчанию LittleVec работает на 127.0.0.1:5577, но вы можете изменить эти и другие настройки, указав их в ini-файле.
 
+Теперь база данных готова к использованию.  
+По умолчанию LittleVec работает на 127.0.0.1:5577, но вы можете изменить этот и другие параметры, указав их в ini-файле.
 
+### Установка через DEB-пакет
 
+Для упрощения установки можно собрать DEB-пакет.  
+Для этого перейдите в каталог `build_deb` и запустите скрипт сборки `build.sh`:
+
+```bash
+cd build_deb
+./build.sh
+```
+
+В результате появится пакет `littlevec_<version>_amd64.deb`, который можно установить с помощью команды:
+
+```bash
+sudo dpkg -i littlevec_<version>_amd64.deb
+```
 
 ---
 
