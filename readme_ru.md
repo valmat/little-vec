@@ -67,6 +67,8 @@ sudo dpkg -i littlevec_<version>_amd64.deb
 
 ### Запуск через Docker
 
+[Образ на DockerHub](https://hub.docker.com/r/valmatdocker/littlevec)
+
 Запустить контейнер можно командой:
 
 ```bash

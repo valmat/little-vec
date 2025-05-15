@@ -67,6 +67,8 @@ sudo dpkg -i littlevec_<version>_amd64.deb
 
 ### Running with Docker
 
+[Image on DockerHub](https://hub.docker.com/r/valmatdocker/littlevec)
+
 You can start the container with the following command:
 
 ```bash
