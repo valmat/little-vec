@@ -37,6 +37,8 @@ struct ReqValidator final
     static bool vecs_array(json::const_iterator it, json::const_iterator end, const ProtocolOut &out) noexcept;
     
     static bool vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept;
+    static bool ids(const json& js, std::vector<std::string_view>& out_vector, const ProtocolOut &out) noexcept;
 };
 
 void to_json(json& j, const SearchResult& data) noexcept;
+void to_json(json& j, const DataUnit& data) noexcept;

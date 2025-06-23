@@ -270,3 +270,22 @@ std::vector<std::vector<SearchResult>> VecDb::search_batch_vec(
 
     return results;
 }
+
+std::vector<DataUnit> VecDb::get_ids(
+    std::optional<DbMeta> meta,
+    const std::vector<std::string_view>& ids) noexcept
+{
+    std::vector<DataUnit> results;
+    results.reserve(ids.size());
+
+    std::string payload_key;
+    std::string value;
+    for(auto id: ids) {
+        payload_key = merge_args(_opts.payload_key(), meta->index, id);
+        if (_db.keyExist(payload_key, value)) [[likely]] {
+            results.emplace_back(DataUnit {std::string(id), std::move(value)});
+        }
+    }
+
+    return results;
+}

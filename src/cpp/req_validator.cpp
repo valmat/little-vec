@@ -3,6 +3,7 @@
 #include "utils_rocks.h"
 #include "req_validator.h"
 
+static constexpr size_t max_ids_size = 10000;
 
 std::optional<InitReqData> ReqValidator::init(const ProtocolInPost &in, const ProtocolOut &out) noexcept
 {
@@ -132,11 +133,48 @@ bool ReqValidator::vector(const json& js, size_t dim, std::vector<float>& out_ve
     return true;
 }
 
+bool ReqValidator::ids(const json& js, std::vector<std::string_view>& out_vector, const ProtocolOut &out) noexcept
+{
+    auto it_ids = js.find("ids");
+    if (it_ids == js.end()) [[unlikely]] {
+        set_error(out, "Missing or invalid 'ids' key.");
+        return false;
+    }    
+    if (!it_ids->is_array() || it_ids->size() > max_ids_size) [[unlikely]] {
+        set_error(out, "Vector 'ids' must be a string array.");
+        return false;
+    }
+
+    out_vector.reserve(it_ids->size());
+    for (const auto& val : *it_ids) {
+        if (!val.is_string()) [[unlikely]] {
+            set_error(out, "All elements of 'ids' must be stings.");
+            return false;
+        }
+        out_vector.push_back(val.get<std::string_view>());
+    }
+    return true;
+}
+
 void to_json(json& j, const SearchResult& data) noexcept
 {
     j = json{
         {"id", data.id},
         {"distance", data.distance}
+    };
+
+    if (!data.payload.empty()) {
+        json js_payload = json::parse(data.payload, nullptr, false);
+        if (!js_payload.is_discarded()) [[likely]] {
+            j["payload"] = js_payload;
+        }
+    }
+}
+
+void to_json(json& j, const DataUnit& data) noexcept
+{
+    j = json{
+        {"id", data.id},
     };
 
     if (!data.payload.empty()) {

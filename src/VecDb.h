@@ -47,4 +47,9 @@ public:
         std::optional<DbMeta> meta,
         const std::vector<std::vector<float>>& vectors, 
         size_t top_k) noexcept;
+
+    std::vector<DataUnit> get_ids(
+        std::optional<DbMeta> meta,
+        const std::vector<std::string_view>& ids) noexcept;
+
 };
