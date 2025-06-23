@@ -15,8 +15,8 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
     if ( !top_k ) [[unlikely]] return;
     if ( !ReqValidator::dist(js, meta->dist, out) ) [[unlikely]] return;
     
-    // Проверка data
-    auto it_data = js.find("data");
+    // Checking vectors out
+    auto it_data = js.find("vectors");
     if ( !ReqValidator::data_array(it_data, js.end(), out) ) [[unlikely]] return;
 
     std::vector<std::vector<float>> vectors;
@@ -41,7 +41,7 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
     for (size_t i = 0; i < it_data->size(); ++i) {
         
         auto& src_item = (*it_data)[i];
-        json item{{"nearest", std::move(search_results[i])}};
+        json item{{"data", std::move(search_results[i])}};
         
         if (auto it_extra = src_item.find("extra"); it_extra != src_item.end()) {
             item["extra"] = std::move(*it_extra);

@@ -18,7 +18,7 @@ void RequestSearchByVector::run(const ProtocolInPost &in, const ProtocolOut &out
     if ( !ReqValidator::vector(js , meta->dim, vector, out) ) [[unlikely]] {return;}
 
     json results {
-        {"nearest", _db->search_vec(meta, vector, top_k)}
+        {"data", _db->search_vec(meta, vector, top_k)}
     };
 
     out.setStr(results.dump(_db->opts().json_indent()));
