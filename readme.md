@@ -125,7 +125,7 @@ All endpoints in this section return response code 200 and the body:
 ```
 on success.
 
-### 1. Create a Database
+### Create a Database
 
 **POST** `/vecdb/create`
 
@@ -156,7 +156,7 @@ on success.
 
 ---
 
-### 2. Delete a Database
+### Delete a Database
 
 **POST** `/vecdb/delete`
 
@@ -168,7 +168,7 @@ on success.
 
 ---
 
-### 3. Update Database Parameters
+### Update Database Parameters
 
 **POST** `/vecdb/update`
 
@@ -189,7 +189,7 @@ on success.
 
 ---
 
-### 4. Add / Update Vectors
+### Add / Update Vectors
 
 **POST** `/vectors/set`
 
@@ -217,9 +217,9 @@ On success, returns code 200 and body:
 
 ---
 
-### 5. Delete Vectors
+### Delete Vectors
 
-**DELETE** `/vectors/delete`
+**POST** `/vectors/delete`
 
 ```json
 {
@@ -235,12 +235,79 @@ On success, returns code 200 and body:
 ```json
 {"success": true}
 ```
+---
+
+## Direct Data Retrieval from the Database
+
+### Getting objects by their IDs
+**POST** `/vectors/get`
+
+Request example:
+```json
+{
+    "db_name": "my_vectors",
+    "ids": ["id1", "id2", ...]
+}
+```
+
+Response:
+```json
+{
+    "results": [
+        { "id": "id1", "payload": ... },
+        ...
+    ]
+}
+```
+
+### Getting Distances Between Vectors and Objects by IDs
+
+**POST** `/vectors/distances`
+
+Request example:
+```json
+{
+    "db_name": "my_vectors",
+    "vectors": [
+        {
+            "vector": [0.1, 0.2, 0.3, ...],
+            "extra": <any JSON, optional>
+        },
+        ...
+    ],
+    "ids": ["id1", "id2"],
+    "dist": "<metric, optional>"
+}
+```
+
+Response:
+```json
+{
+    "results": [
+        {
+            "id": "id1",
+            "payload": ...,
+            "distances": [
+                {"distances": 0.12, "extra": ...},
+                ...
+            ]
+        },{
+            "id": "id2",
+            "payload": ...,
+            "distances": [
+                {"distances": 0.34, "extra": ...},
+                ...
+            ]
+        }
+    ]
+}
+```
 
 ---
 
 ## Search for Nearest Vectors
 
-### 6. Search by One Vector
+### Search by One Vector
 
 **POST** `/vectors/search`
 
@@ -265,14 +332,14 @@ On success, returns code 200 and body:
 
 ---
 
-### 7. Batch Search by Array of Vectors
+### Batch Search by Array of Vectors
 
 **POST** `/vectors/batch_search`
 
 ```json
 {
     "db_name": "my_vectors",
-    "data": [
+    "vectors": [
         {
             "vector": [0.1, 0.2, 0.3, ...],
             "extra": <any JSON, optional>

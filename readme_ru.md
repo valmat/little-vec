@@ -124,7 +124,7 @@ docker-compose down -v
 {"success": true}
 ```
 
-### 1. Создание базы данных
+### Создание базы данных
 
 **POST** `/vecdb/create`
 
@@ -155,7 +155,7 @@ docker-compose down -v
 
 ---
 
-### 2. Удаление базы данных
+### Удаление базы данных
 
 **POST** `/vecdb/delete`
 
@@ -167,7 +167,7 @@ docker-compose down -v
 
 ---
 
-### 3. Обновление параметров базы данных
+### Обновление параметров базы данных
 
 **POST** `/vecdb/update`
 
@@ -188,7 +188,7 @@ docker-compose down -v
 
 ---
 
-### 4. Добавление / обновление векторов
+### Добавление / обновление векторов
 
 **POST** `/vectors/set`
 
@@ -216,9 +216,9 @@ docker-compose down -v
 
 ---
 
-### 5. Удаление векторов
+### Удаление векторов
 
-**DELETE** `/vectors/delete`
+**POST** `/vectors/delete`
 
 ```json
 {
@@ -237,9 +237,75 @@ docker-compose down -v
 
 ---
 
+## Прямое получение данных из БД
+
+### Получение объектов по их id
+**POST** `/vectors/get`
+
+```json
+{
+    "db_name": "my_vectors",
+    "ids": ["id1", "id2", ...]
+}
+```
+
+Ответ:
+```json
+{
+    "results": [
+        { "id": "id1", "payload": ... },
+        ...
+    ]
+}
+```
+
+### Получение расстояний между векторами и объектами по ID
+
+**POST** `/vectors/distances`
+
+```json
+{
+    "db_name": "my_vectors",
+    "vectors": [
+        {
+            "vector": [0.1, 0.2, 0.3, ...],
+            "extra": <any JSON, optional>
+        },
+        ...
+    ],    
+    "ids": ["id1", "id2"],
+    "dist": "<metric, optional>"
+}
+```
+
+Ответ:
+```json
+{
+    "results": [
+        {
+            "id": "id1",
+            "payload": ...,
+            "distances": [
+                {"distances": 0.12, "extra": ...},
+                ...
+            ]
+        },{
+            "id": "id2",
+            "payload": ...,
+            "distances": [
+                {"distances": 0.34, "extra": ...},
+                ...
+            ]            
+        }
+    ]
+}
+```
+
+---
+
 ## Поиск ближайших векторов
 
-### 6. Поиск по одному вектору
+### Поиск по одному вектору
 
 **POST** `/vectors/search`
 
@@ -264,14 +330,14 @@ docker-compose down -v
 
 ---
 
-### 7. Batch-поиск по массиву векторов
+### Batch-поиск по массиву векторов
 
 **POST** `/vectors/batch_search`
 
 ```json
 {
     "db_name": "my_vectors",
-    "data": [
+    "vectors": [
         {
             "vector": [0.1, 0.2, 0.3, ...],
             "extra": <любой JSON, опционально>
