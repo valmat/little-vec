@@ -101,12 +101,34 @@ bool ReqValidator::data_array(json::const_iterator it, json::const_iterator end,
     return true;
 }
 
-bool ReqValidator::vecs_array(json::const_iterator it, json::const_iterator end, const ProtocolOut &out) noexcept
+
+bool ReqValidator::vecs_array(
+    json::const_iterator it,
+    json::const_iterator end,
+    size_t dim,
+    std::vector<std::vector<float>>& out_vectors,
+    const ProtocolOut &out) noexcept
 {
     if (it == end || !it->is_array() || it->empty()) [[unlikely]] {
         set_error(out, "Missing or invalid 'vectors' key. Must be a non-empty array.");
         return false;
     }
+
+    out_vectors.reserve(it->size());
+    for (const auto& item : *it) {
+        if (!item.is_object()) [[unlikely]] {
+            set_error(out, "Each item in 'data' must be an object.");
+            return false;
+        }
+
+        std::vector<float> vector_data;
+        if ( !ReqValidator::vector(item , dim, vector_data, out) ) [[unlikely]] {
+            return false;
+        }
+
+        out_vectors.emplace_back(std::move(vector_data));
+    }
+
     return true;
 }
 

@@ -16,6 +16,5 @@ void RequestGetByIds::run(const ProtocolInPost &in, const ProtocolOut &out) noex
         {"data", _db->get_ids(meta, ids)}
     };
 
-
     out.setStr(results.dump(_db->opts().json_indent()));
 }

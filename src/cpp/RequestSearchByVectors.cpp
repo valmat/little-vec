@@ -16,23 +16,9 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
     if ( !ReqValidator::dist(js, meta->dist, out) ) [[unlikely]] return;
     
     // Checking vectors out
-    auto it_data = js.find("vectors");
-    if ( !ReqValidator::vecs_array(it_data, js.end(), out) ) [[unlikely]] return;
-
     std::vector<std::vector<float>> vectors;
-    vectors.reserve(it_data->size());
-    for (const auto& item : *it_data) {
-
-        if (!item.is_object()) [[unlikely]] {
-            set_error(out, "Each item in 'data' must be an object.");
-            return;
-        }
-
-        std::vector<float> vector_data;
-        if ( !ReqValidator::vector(item , meta->dim, vector_data, out) ) [[unlikely]] {return;}
-
-        vectors.emplace_back(std::move(vector_data));
-    }
+    auto it_data = js.find("vectors");
+    if ( !ReqValidator::vecs_array(it_data, js.end(), meta->dim, vectors, out) ) [[unlikely]] return;
     
     std::vector<std::vector<SearchResult>> search_results = _db->search_batch_vec(meta, vectors, top_k);
     
