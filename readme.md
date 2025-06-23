@@ -240,7 +240,7 @@ On success, returns code 200 and body:
 ## Direct Data Retrieval from the Database
 
 ### Getting objects by their IDs
-**POST** `/vectors/get`
+**POST** `/vectors/get/data`
 
 Request example:
 ```json
@@ -253,7 +253,7 @@ Request example:
 Response:
 ```json
 {
-    "results": [
+    "data": [
         { "id": "id1", "payload": ... },
         ...
     ]
@@ -262,7 +262,7 @@ Response:
 
 ### Getting Distances Between Vectors and Objects by IDs
 
-**POST** `/vectors/distances`
+**POST** `/vectors/get/distances`
 
 Request example:
 ```json
@@ -283,7 +283,7 @@ Request example:
 Response:
 ```json
 {
-    "results": [
+    "data": [
         {
             "id": "id1",
             "payload": ...,
@@ -309,7 +309,7 @@ Response:
 
 ### Search by One Vector
 
-**POST** `/vectors/search`
+**POST** `/vectors/get/nearest`
 
 ```json
 {
@@ -323,7 +323,7 @@ Response:
 **Response:**
 ```json
 {
-    "nearest": [
+    "data": [
         { "id": "123", "distance": 0.123, "payload": ... },
         ...
     ]
@@ -334,7 +334,7 @@ Response:
 
 ### Batch Search by Array of Vectors
 
-**POST** `/vectors/batch_search`
+**POST** `/vectors/get/batch/nearest`
 
 ```json
 {
@@ -356,7 +356,7 @@ Response:
 {
     "results": [
         {
-            "nearest": [
+            "data": [
                 { "id": "123", "distance": 0.123, "payload": ... },
                 ...
             ],

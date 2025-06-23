@@ -240,8 +240,9 @@ docker-compose down -v
 ## Прямое получение данных из БД
 
 ### Получение объектов по их id
-**POST** `/vectors/get`
+**POST** `/vectors/get/data`
 
+Пример запроса:
 ```json
 {
     "db_name": "my_vectors",
@@ -252,7 +253,7 @@ docker-compose down -v
 Ответ:
 ```json
 {
-    "results": [
+    "data": [
         { "id": "id1", "payload": ... },
         ...
     ]
@@ -261,7 +262,7 @@ docker-compose down -v
 
 ### Получение расстояний между векторами и объектами по ID
 
-**POST** `/vectors/distances`
+**POST** `/vectors/get/distances`
 
 ```json
 {
@@ -281,7 +282,7 @@ docker-compose down -v
 Ответ:
 ```json
 {
-    "results": [
+    "data": [
         {
             "id": "id1",
             "payload": ...,
@@ -307,7 +308,7 @@ docker-compose down -v
 
 ### Поиск по одному вектору
 
-**POST** `/vectors/search`
+**POST** `/vectors/get/nearest`
 
 ```json
 {
@@ -321,7 +322,7 @@ docker-compose down -v
 **Ответ:**
 ```json
 {
-    "nearest": [
+    "data": [
         { "id": "123", "distance": 0.123, "payload": ... },
         ...
     ]
@@ -332,7 +333,7 @@ docker-compose down -v
 
 ### Batch-поиск по массиву векторов
 
-**POST** `/vectors/batch_search`
+**POST** `/vectors/get/batch/nearest`
 
 ```json
 {
@@ -354,7 +355,7 @@ docker-compose down -v
 {
     "results": [
         {
-            "nearest": [
+            "data": [
                 { "id": "123", "distance": 0.123, "payload": ... },
                 ...
             ],
