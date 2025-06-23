@@ -287,14 +287,14 @@ docker-compose down -v
             "id": "id1",
             "payload": ...,
             "distances": [
-                {"distances": 0.12, "extra": ...},
+                {"distance": 0.12, "extra": ...},
                 ...
             ]
         },{
             "id": "id2",
             "payload": ...,
             "distances": [
-                {"distances": 0.34, "extra": ...},
+                {"distance": 0.34, "extra": ...},
                 ...
             ]            
         }

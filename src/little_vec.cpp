@@ -48,12 +48,14 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
     auto vec_db = std::make_shared<VecDb>(opts, db);
 
     extension
-        .bind("/vecdb/create",         new RequestCreateDb(vec_db))
-        .bind("/vecdb/update",         new RequestUpdateDb(vec_db))
-        .bind("/vecdb/delete",         new RequestDeleteDb(vec_db))
-        .bind("/vectors/set",          new RequestSetVectors(vec_db))
-        .bind("/vectors/delete",       new RequestDelVectors(vec_db))
-        .bind("/vectors/search",       new RequestSearchByVector(vec_db))
-        .bind("/vectors/batch_search", new RequestSearchByVectors(vec_db))
+        .bind("/vecdb/create",              new RequestCreateDb(vec_db))
+        .bind("/vecdb/update",              new RequestUpdateDb(vec_db))
+        .bind("/vecdb/delete",              new RequestDeleteDb(vec_db))
+        .bind("/vectors/set",               new RequestSetVectors(vec_db))
+        .bind("/vectors/delete",            new RequestDelVectors(vec_db))
+        .bind("/vectors/get/data",          new RequestGetByIds(vec_db))
+        .bind("/vectors/get/distances",     new RequestSearchByIds(vec_db))
+        .bind("/vectors/get/nearest",       new RequestSearchByVector(vec_db))
+        .bind("/vectors/get/batch/nearest", new RequestSearchByVectors(vec_db))
         ;
 }
