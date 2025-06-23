@@ -17,7 +17,7 @@ void RequestSearchByVectors::run(const ProtocolInPost &in, const ProtocolOut &ou
     
     // Checking vectors out
     auto it_data = js.find("vectors");
-    if ( !ReqValidator::data_array(it_data, js.end(), out) ) [[unlikely]] return;
+    if ( !ReqValidator::vecs_array(it_data, js.end(), out) ) [[unlikely]] return;
 
     std::vector<std::vector<float>> vectors;
     vectors.reserve(it_data->size());

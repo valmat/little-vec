@@ -100,6 +100,15 @@ bool ReqValidator::data_array(json::const_iterator it, json::const_iterator end,
     return true;
 }
 
+bool ReqValidator::vecs_array(json::const_iterator it, json::const_iterator end, const ProtocolOut &out) noexcept
+{
+    if (it == end || !it->is_array() || it->empty()) [[unlikely]] {
+        set_error(out, "Missing or invalid 'vectors' key. Must be a non-empty array.");
+        return false;
+    }
+    return true;
+}
+
 bool ReqValidator::vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept
 {
     auto it_vector = js.find("vector");

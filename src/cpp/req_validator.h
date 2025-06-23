@@ -34,6 +34,7 @@ struct ReqValidator final
     static uint dim(const json& js, const ProtocolOut &out) noexcept;
 
     static bool data_array(json::const_iterator it, json::const_iterator end, const ProtocolOut &out) noexcept;
+    static bool vecs_array(json::const_iterator it, json::const_iterator end, const ProtocolOut &out) noexcept;
     
     static bool vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept;
 };
