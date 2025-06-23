@@ -112,6 +112,10 @@ bool ReqValidator::vecs_array(json::const_iterator it, json::const_iterator end,
 bool ReqValidator::vector(const json& js, size_t dim, std::vector<float>& out_vector, const ProtocolOut &out) noexcept
 {
     auto it_vector = js.find("vector");
+    if (it_vector == js.end()) [[unlikely]] {
+        set_error(out, "Missing or invalid 'vector' key.");
+        return false;
+    }    
     if (!it_vector->is_array() || it_vector->size() != dim) [[unlikely]] {
         set_error(out, "Vector must be a numeric array with correct dimension.");
         return false;

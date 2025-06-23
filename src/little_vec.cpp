@@ -20,6 +20,9 @@
 #include "RequestDelVectors.h"
 #include "RequestSearchByVectors.h"
 #include "RequestSearchByVector.h"
+#include "RequestGetByIds.h"
+// #include "RequestDistByIds.h"
+
 
 using namespace RocksServer;
 
@@ -54,7 +57,7 @@ PLUGIN(Extension extension, RocksDBWrapper& db, const RocksServer::IniConfigs& c
         .bind("/vectors/set",               new RequestSetVectors(vec_db))
         .bind("/vectors/delete",            new RequestDelVectors(vec_db))
         .bind("/vectors/get/data",          new RequestGetByIds(vec_db))
-        .bind("/vectors/get/distances",     new RequestSearchByIds(vec_db))
+        // .bind("/vectors/get/distances",     new RequestDistByIds(vec_db))
         .bind("/vectors/get/nearest",       new RequestSearchByVector(vec_db))
         .bind("/vectors/get/batch/nearest", new RequestSearchByVectors(vec_db))
         ;
