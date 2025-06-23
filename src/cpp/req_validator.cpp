@@ -206,3 +206,25 @@ void to_json(json& j, const DataUnit& data) noexcept
         }
     }
 }
+
+void to_json(json& j, const DistancesUnit& data) noexcept
+{
+    json distances_json = json::array();
+    distances_json.get_ref<json::array_t&>().reserve(data.distances.size());
+
+    for (auto d : data.distances) {
+        distances_json.push_back({{"distance", d}});
+    }    
+
+    j = json{
+        {"id", data.id},
+        {"distances", std::move(distances_json)}
+    };
+
+    if (!data.payload.empty()) {
+        json js_payload = json::parse(data.payload, nullptr, false);
+        if (!js_payload.is_discarded()) [[likely]] {
+            j["payload"] = js_payload;
+        }
+    }
+}

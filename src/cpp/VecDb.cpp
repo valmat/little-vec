@@ -289,3 +289,42 @@ std::vector<DataUnit> VecDb::get_ids(
 
     return results;
 }
+
+std::vector<DistancesUnit> VecDb::get_distances(
+    std::optional<DbMeta> meta,
+    const std::vector<std::string_view>& ids,
+    const std::vector<std::vector<float>>& vectors) noexcept
+{
+    std::vector<DistancesUnit> results;
+    results.reserve(ids.size());
+
+    auto dist_func = DistFun::get_func(meta->dist);
+    size_t dim = meta->dim;
+    size_t batch_size = vectors.size();
+
+    std::vector<float> stored_vec(dim);
+    float* data = stored_vec.data();
+
+    std::string payload_key;
+    std::string vec_key;
+    std::string vec_str;
+    for(auto id: ids) {
+        vec_key = merge_args(_opts.vec_key(), meta->index, id);
+        if (!_db.keyExist(vec_key, vec_str)) [[unlikely]] {
+            continue;
+        }
+        payload_key = merge_args(_opts.payload_key(), meta->index, id);
+
+        DistancesUnit unit{std::string(id), _db.get(payload_key)};
+
+        deserialize_buf(vec_str.data(), dim, data);
+        unit.distances = std::vector<float>(batch_size);
+        for (size_t i = 0; i < batch_size; ++i) {
+            unit.distances[i] = dist_func(vectors[i].data(), data, dim);
+        }
+
+        results.emplace_back(std::move(unit));
+    }
+
+    return results;
+}

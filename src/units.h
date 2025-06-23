@@ -2,6 +2,7 @@
 #include <string>
 #include <optional>
 #include <limits>
+#include <vector>
 
 struct DbMeta final
 {
@@ -23,4 +24,11 @@ struct DataUnit final
 {
     std::string id{};
     std::string payload{};
+};
+
+struct DistancesUnit final
+{
+    std::string id{};
+    std::string payload{};
+    std::vector<float> distances{};
 };

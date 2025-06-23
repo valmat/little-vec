@@ -47,3 +47,4 @@ struct ReqValidator final
 
 void to_json(json& j, const SearchResult& data) noexcept;
 void to_json(json& j, const DataUnit& data) noexcept;
+void to_json(json& j, const DistancesUnit& data) noexcept;
