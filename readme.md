@@ -131,20 +131,20 @@ on success.
 
 ```json
 {
-    "name": "<database_name (string)>",
+    "db_name": "<database_name (string)>",
     "dim": <vector_dimension (int)>,
     "dist": "<distance_metric (optional, see below)>"
 }
 ```
 
-- **name** (string, required) — unique database name
+- **db_name** (string, required) — unique database name
 - **dim** (int, required) — vector dimension
 - **dist** (string, optional) — metric: `"qcos"` (default), `"cos"`, `"dot_prod"`, `"l1"`, `"l2"`
 
 **Example request**:
 ```json
 {
-    "name": "my_vectors",
+    "db_name": "my_vectors",
     "dim": 128,
     "dist": "cos"
 }
@@ -162,7 +162,7 @@ on success.
 
 ```json
 {
-    "name": "<database_name>"
+    "db_name": "<database_name>"
 }
 ```
 
@@ -174,7 +174,7 @@ on success.
 
 ```json
 {
-    "name": "<database_name>",
+    "db_name": "<database_name>",
     "dist": "<new_distance_metric>"
 }
 ```
